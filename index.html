@@ -3,15 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Site de Exemplo</title>
+    <title>Agenda de Compras</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Olá, Mundo! 🚀</h1>
-        <p>Este é um site de exemplo hospedado no GitHub.</p>
-        <button id="meuBotao">Clique em mim</button>
-    </div>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>AGENDA DE<br>COMPRAS</h1>
+        </div>
+        
+        <div class="sidebar-menu">
+            <h2>GRUPOS</h2>
+            <button class="group-btn" onclick="selecionarGrupo('ZANOL & THOMAZ')">ZANOL & THOMAZ</button>
+            <button class="group-btn" onclick="selecionarGrupo('CELLA')">CELLA</button>
+            <button class="group-btn" onclick="selecionarGrupo('FÊNIX')">FÊNIX</button>
+        </div>
+    </aside>
+
+    <main class="content">
+        <div id="conteudo-dinamico">
+            <h2>Bem-vindo à Agenda de Compras</h2>
+            <p>Selecione um grupo no menu lateral para carregar a agenda.</p>
+        </div>
+    </main>
 
     <script src="script.js"></script>
 </body>
