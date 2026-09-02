@@ -8,69 +8,86 @@
 </head>
 <body>
 
-    <h2>Controle de Compras</h2>
-
-    <div class="tabs">
-        <button class="tab-btn active" onclick="mudarAba('Zanol & Thomaz', this)">ZANOL & THOMAZ</button>
-        <button class="tab-btn" onclick="mudarAba('Cella', this)">CELLA</button>
-        <button class="tab-btn" onclick="mudarAba('Fenix', this)">FENIX</button>
-    </div>
-
-    <div class="form-container" id="formAgenda">
-        <input type="hidden" id="editIndex" value="-1">
+    <div class="app-container">
         
-        <div class="form-group">
-            <label>Data</label>
-            <input type="date" id="inputData" required>
-        </div>
-        
-        <div class="form-group">
-            <label>Classificação</label>
-            <select id="inputClassificacao" required>
-                <option value="">Selecione...</option>
-                </select>
-        </div>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>AGENDA DE<br>COMPRAS</h2>
+            </div>
+            
+            <div class="sidebar-menu">
+                <h3>GRUPOS</h3>
+                <button class="menu-btn active" onclick="mudarAba('Zanol & Thomaz', this)">ZANOL & THOMAZ</button>
+                <button class="menu-btn" onclick="mudarAba('Cella', this)">CELLA</button>
+                <button class="menu-btn" onclick="mudarAba('Fênix', this)">FÊNIX</button>
+            </div>
+        </aside>
 
-        <div class="form-group">
-            <label>Fornecedor</label>
-            <input type="text" id="inputFornecedor" placeholder="Nome do fornecedor..." required>
-        </div>
+        <main class="main-content">
+            
+            <div class="content-header">
+                <h2 id="tituloAgenda">Agenda: ZANOL & THOMAZ</h2>
+                <p>Controle de agendamentos e faturamentos.</p>
+            </div>
 
-        <div class="form-group">
-            <label>Previsão Faturamento</label>
-            <select id="inputPrevisao" required>
-                <option value="">Selecione...</option>
-                </select>
-        </div>
+            <div class="form-container" id="formAgenda">
+                <input type="hidden" id="editIndex" value="-1">
+                
+                <div class="form-group">
+                    <label>Data</label>
+                    <input type="date" id="inputData" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Classificação</label>
+                    <select id="inputClassificacao" required>
+                        <option value="">Selecione...</option>
+                        </select>
+                </div>
 
-        <div class="form-group">
-            <label>Status</label>
-            <select id="inputStatus" required>
-                <option value="AGENDADO">Agendado</option>
-                <option value="EXECUTADO">Executado</option>
-                <option value="EXECUTADO PARCIALMENTE">Executado Parcialmente</option>
-            </select>
-        </div>
+                <div class="form-group">
+                    <label>Fornecedor</label>
+                    <input type="text" id="inputFornecedor" placeholder="Nome..." required>
+                </div>
 
-        <button class="btn-add" onclick="salvarAgendamento()">Salvar</button>
-    </div>
+                <div class="form-group">
+                    <label>Previsão Faturamento</label>
+                    <select id="inputPrevisao" required>
+                        <option value="">Selecione...</option>
+                        </select>
+                </div>
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Classificação</th>
-                    <th>Fornecedor</th>
-                    <th>Previsão Faturamento</th>
-                    <th>Status</th>
-                    <th>Flag</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody id="tabelaCorpo">
-                </tbody>
-        </table>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="inputStatus" required>
+                        <option value="AGENDADO">Agendado</option>
+                        <option value="EXECUTADO">Executado</option>
+                        <option value="EXECUTADO PARCIALMENTE">Executado Parcialmente</option>
+                    </select>
+                </div>
+
+                <button class="btn-add" onclick="salvarAgendamento()">Salvar</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Classificação</th>
+                            <th>Fornecedor</th>
+                            <th>Previsão Faturamento</th>
+                            <th>Status</th>
+                            <th>Flag</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaCorpo">
+                        </tbody>
+                </table>
+            </div>
+
+        </main>
     </div>
 
     <script src="script.js"></script>
