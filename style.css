@@ -1,86 +1,44 @@
-/* Reset básico para remover margens padrão */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
+/* Estilos e Cores Gerais */
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: #f4f7f6; 
+    margin: 0; 
+    padding: 20px; 
+    color: #333; 
+}
+h2 { 
+    text-align: center; 
+    color: #2c3e50; 
 }
 
-body {
-    display: flex;
-    height: 100vh; /* Ocupa 100% da altura da tela */
-    background-color: #f7f6f2; /* Cor de fundo bege bem claro */
-}
+/* Menu de Abas */
+.tabs { display: flex; justify-content: center; margin-bottom: 20px; gap: 10px; }
+.tab-btn { padding: 12px 24px; cursor: pointer; border: none; background: #e0e4e8; font-weight: bold; font-size: 14px; border-radius: 5px 5px 0 0; transition: 0.3s; }
+.tab-btn:hover { background: #cbd5e1; }
+.tab-btn.active { background: #2c3e50; color: white; }
 
-/* Estilo da Barra Lateral (Marrom Escuro) */
-.sidebar {
-    width: 250px;
-    background-color: #4a2e15; 
-    color: white;
-    display: flex;
-    flex-direction: column;
-    border-right: 2px solid #000;
-}
+/* Formulário de Inserção */
+.form-container { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
+.form-group { display: flex; flex-direction: column; flex: 1; min-width: 150px; }
+.form-group label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+.form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+.btn-add { padding: 10px 20px; background-color: #27ae60; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; height: 36px; }
+.btn-add:hover { background-color: #219150; }
 
-.sidebar-header {
-    padding: 30px 20px;
-    text-align: center;
-    border-bottom: 2px solid #7cb1d1; /* Linha azul clara abaixo do título, como na imagem */
-}
+/* Tabela */
+.table-container { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 900px; }
+th, td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+th { background-color: #f8f9fa; font-weight: bold; color: #2c3e50; }
+tr:hover { background-color: #f1f5f9; }
 
-.sidebar-header h1 {
-    font-size: 1.2rem;
-    letter-spacing: 1px;
-    line-height: 1.4;
-}
+/* Flags (Indicadores Visuais) */
+.flag { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; display: inline-block; text-align: center; width: 130px; }
+.flag.agendado { background-color: #f1c40f; color: #fff; } /* Amarelo */
+.flag.executado { background-color: #2ecc71; color: #fff; } /* Verde */
+.flag.parcial { background-color: #3498db; color: #fff; } /* Azul */
 
-.sidebar-menu {
-    padding: 20px 10px;
-    text-align: center;
-}
-
-.sidebar-menu h2 {
-    font-size: 1rem;
-    margin-bottom: 15px;
-    letter-spacing: 1px;
-}
-
-/* Estilo dos Botões */
-.group-btn {
-    width: 100%;
-    background-color: white;
-    color: #4a2e15;
-    border: 2px solid #333;
-    padding: 12px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.group-btn:hover {
-    background-color: #e0e0e0; /* Efeito ao passar o mouse */
-}
-
-/* Estilo da Área de Conteúdo */
-.content {
-    flex: 1; /* Ocupa todo o espaço restante ao lado do menu */
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    
-    /* Aqui você pode adicionar a imagem do leão como marca d'água no futuro */
-    /* background-image: url('caminho-para-imagem-leao.jpg'); */
-    /* background-size: cover; */
-    /* background-position: left center; */
-    /* opacity: 0.1; */
-}
-
-#conteudo-dinamico {
-    text-align: center;
-    color: #333;
-    z-index: 1; /* Garante que o texto fique acima da marca d'água */
-}
+/* Botões de Ação */
+.btn-action { cursor: pointer; border: none; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; margin-right: 5px; }
+.btn-edit { background: #f39c12; }
+.btn-delete { background: #e74c3c; }
