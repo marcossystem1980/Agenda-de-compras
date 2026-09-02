@@ -175,7 +175,6 @@
         ];
 
         window.onload = function() {
-            // Carrega os dados salvos no navegador (se houver)
             const dadosSalvos = localStorage.getItem('agendamentos_compras');
             if (dadosSalvos) {
                 agendamentos = JSON.parse(dadosSalvos);
@@ -317,7 +316,7 @@
                     `"${item.previsao}"`,
                     `"${item.status}"`
                 ];
-                csv.csv.push(linha.join(";")); // Correção simples na linha de push
+                csv.push(linha.join(";")); // Erro corrigido aqui
             });
 
             let arquivoCsv = new Blob(["\ufeff" + csv.join("\n")], { type: 'text/csv;charset=utf-8;' });
