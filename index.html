@@ -199,34 +199,36 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; color: #333; }
-        .app-container { display: flex; min-height: 100vh; }
+        .app-container { display: flex; min-height: 100vh; flex-direction: row; }
+        
         .sidebar {
-            width: 260px;
+            width: 220px;
             background-color: #4a3320;
             color: white;
             display: flex;
             flex-direction: column;
             border-right: 2px solid #6b4d34;
+            flex-shrink: 0;
         }
         .sidebar-header {
-            padding: 30px 20px;
+            padding: 20px 10px;
             text-align: center;
             border-bottom: 1px solid #7a583c;
         }
-        .sidebar-header h2 { font-size: 20px; letter-spacing: 1px; line-height: 1.4; }
-        .sidebar-menu { padding: 20px 0; display: flex; flex-direction: column; }
-        .sidebar-menu h3 { text-align: center; font-size: 16px; margin-bottom: 20px; letter-spacing: 2px; }
+        .sidebar-header h2 { font-size: 16px; letter-spacing: 1px; line-height: 1.4; }
+        .sidebar-menu { padding: 10px 0; display: flex; flex-direction: column; }
+        .sidebar-menu h3 { text-align: center; font-size: 14px; margin-bottom: 10px; letter-spacing: 2px; }
         .menu-btn {
             background-color: transparent;
             color: white;
             border: none;
-            padding: 15px 20px;
-            font-size: 14px;
+            padding: 12px 10px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             text-align: center;
             transition: 0.3s;
-            margin: 5px 20px;
+            margin: 3px 10px;
         }
         .menu-btn:hover { background-color: #6b4d34; }
         .menu-btn.active {
@@ -234,19 +236,20 @@
             color: #4a3320;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .content-header { margin-bottom: 30px; text-align: center; position: relative; }
-        .content-header h2 { color: #333; font-size: 28px; }
-        .content-header p { color: #666; margin-top: 5px; }
+
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; width: 100%; }
+        .content-header { margin-bottom: 20px; text-align: center; position: relative; }
+        .content-header h2 { color: #333; font-size: 22px; }
+        .content-header p { color: #666; margin-top: 5px; font-size: 14px; }
         
         .btn-export {
-            position: absolute;
-            right: 0;
-            top: 0;
+            position: relative;
+            display: inline-block;
+            margin-top: 10px;
             background-color: #27ae60;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
@@ -255,26 +258,39 @@
         .btn-export:hover { background-color: #219653; }
 
         .form-container {
-            background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;
+            background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
         }
         .form-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
         .form-group label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
-        .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        .btn-add { padding: 10px 20px; background-color: #4a3320; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; height: 36px; transition: 0.2s; }
+        .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; }
+        .btn-add { padding: 10px 20px; background-color: #4a3320; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; height: 38px; width: 100%; transition: 0.2s; margin-top: 5px; }
         .btn-add:hover { background-color: #6b4d34; }
+        
         .table-container { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 900px; }
-        th, td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #eee; text-align: left; font-size: 13px; }
         th { background-color: #f4f7f6; font-weight: bold; color: #333; }
         tr:hover { background-color: #f9f9f9; }
-        .flag { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; display: inline-block; text-align: center; width: 130px; }
+        .flag { padding: 4px 8px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; display: inline-block; text-align: center; width: 110px; }
         .flag.agendado { background-color: #f1c40f; color: #fff; } 
         .flag.executado { background-color: #2ecc71; color: #fff; } 
         .flag.parcial { background-color: #3498db; color: #fff; } 
-        .btn-action { cursor: pointer; border: none; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; margin-right: 5px; }
+        .btn-action { cursor: pointer; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; margin-right: 3px; }
         .btn-edit { background: #f39c12; }
         .btn-delete { background: #e74c3c; }
+
+        /* Ajustes específicos para telas bem pequenas (Celulares em pé) */
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 2px solid #6b4d34; }
+            .sidebar-menu { display: flex; flex-direction: row; justify-content: center; flex-wrap: wrap; padding: 5px; }
+            .sidebar-menu h3 { display: none; }
+            .menu-btn { margin: 3px; padding: 8px 12px; font-size: 12px; flex: 1; min-width: 100px; }
+            .sidebar-header { padding: 10px; }
+            .sidebar-header h2 { font-size: 14px; }
+            .form-group { min-width: 100%; }
+        }
     </style>
 </head>
 <body>
