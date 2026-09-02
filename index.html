@@ -43,9 +43,26 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .content-header { margin-bottom: 30px; text-align: center; }
+        .content-header { margin-bottom: 30px; text-align: center; position: relative; }
         .content-header h2 { color: #333; font-size: 28px; }
         .content-header p { color: #666; margin-top: 5px; }
+        
+        /* Estilo do Botão de Exportar */
+        .btn-export {
+            position: absolute;
+            right: 0;
+            top: 0;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-export:hover { background-color: #219653; }
+
         .form-container {
             background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;
@@ -88,6 +105,7 @@
             <div class="content-header">
                 <h2 id="tituloAgenda">Agenda: ZANOL & THOMAZ</h2>
                 <p>Controle de agendamentos e faturamentos.</p>
+                <button class="btn-export" onclick="exportarExcel()">Exportar Excel</button>
             </div>
 
             <div class="form-container" id="formAgenda">
@@ -265,6 +283,43 @@
             document.getElementById('inputFornecedor').value = '';
             document.getElementById('inputPrevisao').value = '';
             document.getElementById('inputStatus').value = 'AGENDADO';
+        }
+
+        // Função de Exportar para Excel
+        function exportarExcel() {
+            // Filtra apenas os agendamentos da empresa que está ativa na tela
+            const dadosFiltrados = agendamentos.filter(item => item.empresa === empresaAtual);
+
+            if (dadosFiltrados.length === 0) {
+                alert("Não há dados para exportar nesta agenda.");
+                return;
+            }
+
+            let csv = [];
+            // Cabeçalho das colunas
+            csv.push(["Data", "Classificacao", "Fornecedor", "Previsao Faturamento", "Status"].join(";"));
+
+            // Linhas de dados
+            dadosFiltrados.forEach(item => {
+                let linha = [
+                    `"${item.data}"`,
+                    `"${item.classificacao}"`,
+                    `"${item.fornecedor}"`,
+                    `"${item.previsao}"`,
+                    `"${item.status}"`
+                ];
+                csv.push(linha.join(";"));
+            });
+
+            // Cria o arquivo e dispara o download automático
+            let arquivoCsv = new Blob(["\ufeff" + csv.join("\n")], { type: 'text/csv;charset=utf-8;' });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(arquivoCsv);
+            link.download = `Agenda_${empresaAtual.replace(/[^a-zA-Z0-9]/g, "_")}.csv`;
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>
