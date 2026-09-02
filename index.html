@@ -3,301 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda de Compras</title>
-    <!-- Importando o Firebase SDK via CDN -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        // Configuração do Firebase fornecida
-        const firebaseConfig = {
-            apiKey: "AIzaSyDIjE6Kcrf7Pi3NrUnEKyMEq0KAqNAg0xI",
-            authDomain: "agenda-5d102.firebaseapp.com",
-            projectId: "agenda-5d102",
-            storageBucket: "agenda-5d102.firebasestorage.app",
-            messagingSenderId: "927330632677",
-            appId: "1:927330632677:web:11a1ea3bd27f9868b9a50c",
-            measurementId: "G-00Y8Q58N2X"
-        };
-
-        // Inicializando o Firebase e o Firestore
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        let empresaAtual = 'Zanol & Thomaz';
-        let agendamentos = [];
-
-        const classificacoes = [
-            "CONVENIENCIA", "DERMOCOSMETICOS", "FRALDAS E LEITES", "GENERICOS", 
-            "NOSSAS MARCAS", "PBM", "PERFUMARIA", "PERFUMES", "PROPAGADO", "SIMILARES", "SUPLEMENTO", "VAREJO"
-        ];
-
-        window.onload = function() {
-            const selectClass = document.getElementById('inputClassificacao');
-            classificacoes.forEach(classe => {
-                let opt = document.createElement('option');
-                opt.value = classe;
-                opt.innerHTML = classe;
-                selectClass.appendChild(opt);
-            });
-
-            const selectPrev = document.getElementById('inputPrevisao');
-            for(let i = 1; i <= 45; i++) {
-                let opt = document.createElement('option');
-                opt.value = i + " Dias";
-                opt.innerHTML = i + " Dias";
-                selectPrev.appendChild(opt);
-            }
-
-            // Ouve alterações no banco de dados do Firestore em tempo real
-            onSnapshot(collection(db, "agendamentos"), (snapshot) => {
-                agendamentos = [];
-                snapshot.forEach((docSnap) => {
-                    agendamentos.push({ id: docSnap.id, ...docSnap.data() });
-                });
-                renderizarTabela();
-            });
-        };
-
-        window.mudarAba = function(nomeEmpresa, btnElement) {
-            empresaAtual = nomeEmpresa;
-            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
-            document.getElementById('tituloAgenda').innerText = "Agenda: " + nomeEmpresa.toUpperCase();
-            limparFormulario();
-            renderizarTabela();
-        }
-
-        window.salvarAgendamento = async function() {
-            const idDoc = document.getElementById('editIndex').value;
-            const data = document.getElementById('inputData').value;
-            const classificacao = document.getElementById('inputClassificacao').value;
-            const fornecedor = document.getElementById('inputFornecedor').value.toUpperCase();
-            const previsao = document.getElementById('inputPrevisao').value;
-            const status = document.getElementById('inputStatus').value;
-
-            if(!data || !classificacao || !fornecedor || !previsao) {
-                alert("Preencha todos os campos.");
-                return;
-            }
-
-            const dataParts = data.split('-');
-            const dataFormatada = `${dataParts[2]}/${dataParts[1]}/${dataParts[0]}`;
-
-            const novoAgendamento = { empresa: empresaAtual, dataOrig: data, data: dataFormatada, classificacao, fornecedor, previsao, status };
-
-            try {
-                if (idDoc === "-1") {
-                    // Adiciona novo registro no Firestore
-                    await addDoc(collection(db, "agendamentos"), novoAgendamento);
-                } else {
-                    // Atualiza registro existente no Firestore
-                    const docRef = doc(db, "agendamentos", idDoc);
-                    await updateDoc(docRef, novoAgendamento);
-                    document.getElementById('editIndex').value = "-1";
-                }
-                limparFormulario();
-            } catch (error) {
-                console.error("Erro ao salvar: ", error);
-                alert("Erro ao salvar no banco de dados.");
-            }
-        }
-
-        window.excluirAgendamento = async function(idDoc) {
-            if(confirm("Remover este agendamento?")) {
-                try {
-                    await deleteDoc(doc(db, "agendamentos", idDoc));
-                } catch (error) {
-                    console.error("Erro ao excluir: ", error);
-                    alert("Erro ao remover o item.");
-                }
-            }
-        }
-
-        window.editarAgendamento = function(idDoc) {
-            const item = agendamentos.find(i => i.id === idDoc);
-            if(item) {
-                document.getElementById('inputData').value = item.dataOrig;
-                document.getElementById('inputClassificacao').value = item.classificacao;
-                document.getElementById('inputFornecedor').value = item.fornecedor;
-                document.getElementById('inputPrevisao').value = item.previsao;
-                document.getElementById('inputStatus').value = item.status;
-                document.getElementById('editIndex').value = idDoc; 
-            }
-        }
-
-        function renderizarTabela() {
-            const corpo = document.getElementById('tabelaCorpo');
-            corpo.innerHTML = ''; 
-
-            agendamentos.forEach((item) => {
-                if(item.empresa === empresaAtual) {
-                    let classeFlag = '';
-                    if(item.status === 'AGENDADO') classeFlag = 'agendado';
-                    if(item.status === 'EXECUTADO') classeFlag = 'executado';
-                    if(item.status === 'EXECUTADO PARCIALMENTE') classeFlag = 'parcial';
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${item.data}</td>
-                        <td>${item.classificacao}</td>
-                        <td>${item.fornecedor}</td>
-                        <td>${item.previsao}</td>
-                        <td>${item.status}</td>
-                        <td><span class="flag ${classeFlag}">${item.status}</span></td>
-                        <td>
-                            <button class="btn-action btn-edit" onclick="editarAgendamento('${item.id}')">Editar</button>
-                            <button class="btn-action btn-delete" onclick="excluirAgendamento('${item.id}')">Remover</button>
-                        </td>
-                    `;
-                    corpo.appendChild(tr);
-                }
-            });
-        }
-
-        function limparFormulario() {
-            document.getElementById('inputData').value = '';
-            document.getElementById('inputClassificacao').value = '';
-            document.getElementById('inputFornecedor').value = '';
-            document.getElementById('inputPrevisao').value = '';
-            document.getElementById('inputStatus').value = 'AGENDADO';
-            document.getElementById('editIndex').value = '-1';
-        }
-
-        window.exportarExcel = function() {
-            const dadosFiltrados = agendamentos.filter(item => item.empresa === empresaAtual);
-
-            if (dadosFiltrados.length === 0) {
-                alert("Não há dados para exportar nesta agenda.");
-                return;
-            }
-
-            let csv = [];
-            csv.push(["Data", "Classificacao", "Fornecedor", "Previsao Faturamento", "Status"].join(";"));
-
-            dadosFiltrados.forEach(item => {
-                let linha = [
-                    `"${item.data}"`,
-                    `"${item.classificacao}"`,
-                    `"${item.fornecedor}"`,
-                    `"${item.previsao}"`,
-                    `"${item.status}"`
-                ];
-                csv.push(linha.join(";"));
-            });
-
-            let arquivoCsv = new Blob(["\ufeff" + csv.join("\n")], { type: 'text/csv;charset=utf-8;' });
-            let link = document.createElement("a");
-            link.href = URL.createObjectURL(arquivoCsv);
-            link.download = `Agenda_${empresaAtual.replace(/[^a-zA-Z0-9]/g, "_")}.csv`;
-            link.style.display = "none";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    </script>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; color: #333; }
-        .app-container { display: flex; min-height: 100vh; }
-        .sidebar {
-            width: 260px;
-            background-color: #4a3320;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            border-right: 2px solid #6b4d34;
-        }
-        .sidebar-header {
-            padding: 30px 20px;
-            text-align: center;
-            border-bottom: 1px solid #7a583c;
-        }
-        .sidebar-header h2 { font-size: 20px; letter-spacing: 1px; line-height: 1.4; }
-        .sidebar-menu { padding: 20px 0; display: flex; flex-direction: column; }
-        .sidebar-menu h3 { text-align: center; font-size: 16px; margin-bottom: 20px; letter-spacing: 2px; }
-        .menu-btn {
-            background-color: transparent;
-            color: white;
-            border: none;
-            padding: 15px 20px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            transition: 0.3s;
-            margin: 5px 20px;
-        }
-        .menu-btn:hover { background-color: #6b4d34; }
-        .menu-btn.active {
-            background-color: white;
-            color: #4a3320;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .content-header { margin-bottom: 30px; text-align: center; position: relative; }
-        .content-header h2 { color: #333; font-size: 28px; }
-        .content-header p { color: #666; margin-top: 5px; }
-        
-        .btn-export {
-            position: absolute;
-            right: 0;
-            top: 0;
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-export:hover { background-color: #219653; }
-
-        .form-container {
-            background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;
-        }
-        .form-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
-        .form-group label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
-        .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        .btn-add { padding: 10px 20px; background-color: #4a3320; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; height: 36px; transition: 0.2s; }
-        .btn-add:hover { background-color: #6b4d34; }
-        .table-container { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 900px; }
-        th, td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
-        th { background-color: #f4f7f6; font-weight: bold; color: #333; }
-        tr:hover { background-color: #f9f9f9; }
-        .flag { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; display: inline-block; text-align: center; width: 130px; }
-        .flag.agendado { background-color: #f1c40f; color: #fff; } 
-        .flag.executado { background-color: #2ecc71; color: #fff; } 
-        .flag.parcial { background-color: #3498db; color: #fff; } 
-        .btn-action { cursor: pointer; border: none; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; margin-right: 5px; }
-        .btn-edit { background: #f39c12; }
-        .btn-delete { background: #e74c3c; }
-    </style>
+    <title>Agenda de Compras - Ultra Assessoria</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 <body>
 
-    <div class="app-container">
-        <aside class="sidebar">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="app-container" id="appContainer">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h2>AGENDA DE<br>COMPRAS</h2>
+                <h2 class="sidebar-title">AGENDA DE COMPRAS</h2>
+                <button class="close-sidebar-btn" id="btnCloseSidebar">✕</button>
             </div>
+            
             <div class="sidebar-menu">
-                <h3>GRUPOS</h3>
-                <button class="menu-btn active" onclick="mudarAba('Zanol & Thomaz', this)">ZANOL & THOMAZ</button>
-                <button class="menu-btn" onclick="mudarAba('Cella', this)">CELLA</button>
-                <button class="menu-btn" onclick="mudarAba('Fênix', this)">FÊNIX</button>
+                <span class="menu-category-title">GRUPOS DE LOJAS</span>
+                
+                <div class="group-item" id="group-item-ZanolThomaz" data-grupo="Zanol & Thomaz">
+                    <button class="menu-btn">
+                        <span class="group-name">ZANOL & THOMAZ</span>
+                        <span class="arrow">▾</span>
+                    </button>
+                    <div class="subclass-list" id="sub-list-ZanolThomaz"></div>
+                </div>
+
+                <div class="group-item" id="group-item-Cella" data-grupo="Cella">
+                    <button class="menu-btn">
+                        <span class="group-name">CELLA</span>
+                        <span class="arrow">▾</span>
+                    </button>
+                    <div class="subclass-list" id="sub-list-Cella"></div>
+                </div>
+
+                <div class="group-item" id="group-item-Fenix" data-grupo="Fênix">
+                    <button class="menu-btn">
+                        <span class="group-name">FÊNIX</span>
+                        <span class="arrow">▾</span>
+                    </button>
+                    <div class="subclass-list" id="sub-list-Fenix"></div>
+                </div>
             </div>
         </aside>
 
         <main class="main-content">
             <div class="content-header">
-                <h2 id="tituloAgenda">Agenda: ZANOL & THOMAZ</h2>
-                <p>Controle de agendamentos e faturamentos.</p>
-                <button class="btn-export" onclick="exportarExcel()">Exportar Excel</button>
-            </div>
+<div class="header-title-group">
+        <button class="hamburger-btn" id="btnToggleSidebar" title="Recolher / Expandir Menu">☰</button>
+        <div>
+            <h2 id="tituloAgenda">Agenda: ZANOL & THOMAZ</h2>
+            <p>Gerenciamento integrado de cronogramas e faturamentos por categoria.</p>
+        </div>
+    </div>
+    
+    <button class="btn-export" id="btnExportarExcel">Exportar Excel</button>
+</div>
 
             <div class="form-container" id="formAgenda">
                 <input type="hidden" id="editIndex" value="-1">
@@ -316,7 +76,7 @@
 
                 <div class="form-group">
                     <label>Fornecedor</label>
-                    <input type="text" id="inputFornecedor" placeholder="Nome..." required>
+                    <input type="text" id="inputFornecedor" placeholder="Nome do fornecedor..." required>
                 </div>
 
                 <div class="form-group">
@@ -335,7 +95,7 @@
                     </select>
                 </div>
 
-                <button class="btn-add" onclick="salvarAgendamento()">Salvar</button>
+                <button class="btn-add" id="btnSalvarAgendamento">Salvar Registro</button>
             </div>
 
             <div class="table-container">
@@ -347,14 +107,17 @@
                             <th>Fornecedor</th>
                             <th>Previsão Faturamento</th>
                             <th>Status</th>
-                            <th>Flag</th>
+                            <th>Indicador</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelaCorpo"></tbody>
+                    <tbody id="tabelaCorpo">
+                        </tbody>
                 </table>
             </div>
         </main>
     </div>
+
+    <script type="module" src="./assets/js/script.js"></script>
 </body>
 </html>
