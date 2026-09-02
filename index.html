@@ -47,7 +47,6 @@
         .content-header h2 { color: #333; font-size: 28px; }
         .content-header p { color: #666; margin-top: 5px; }
         
-        /* Estilo do Botão de Exportar */
         .btn-export {
             position: absolute;
             right: 0;
@@ -176,6 +175,12 @@
         ];
 
         window.onload = function() {
+            // Carrega os dados salvos no navegador (se houver)
+            const dadosSalvos = localStorage.getItem('agendamentos_compras');
+            if (dadosSalvos) {
+                agendamentos = JSON.parse(dadosSalvos);
+            }
+
             const selectClass = document.getElementById('inputClassificacao');
             classificacoes.forEach(classe => {
                 let opt = document.createElement('option');
@@ -191,6 +196,8 @@
                 opt.innerHTML = i + " Dias";
                 selectPrev.appendChild(opt);
             }
+
+            renderizarTabela();
         };
 
         function mudarAba(nomeEmpresa, btnElement) {
@@ -227,6 +234,7 @@
                 document.getElementById('editIndex').value = -1;
             }
 
+            salvarNoStorage();
             limparFormulario();
             renderizarTabela();
         }
@@ -234,6 +242,7 @@
         function excluirAgendamento(index) {
             if(confirm("Remover este agendamento?")) {
                 agendamentos.splice(index, 1);
+                salvarNoStorage();
                 renderizarTabela();
             }
         }
@@ -285,9 +294,11 @@
             document.getElementById('inputStatus').value = 'AGENDADO';
         }
 
-        // Função de Exportar para Excel
+        function salvarNoStorage() {
+            localStorage.setItem('agendamentos_compras', JSON.stringify(agendamentos));
+        }
+
         function exportarExcel() {
-            // Filtra apenas os agendamentos da empresa que está ativa na tela
             const dadosFiltrados = agendamentos.filter(item => item.empresa === empresaAtual);
 
             if (dadosFiltrados.length === 0) {
@@ -296,10 +307,8 @@
             }
 
             let csv = [];
-            // Cabeçalho das colunas
             csv.push(["Data", "Classificacao", "Fornecedor", "Previsao Faturamento", "Status"].join(";"));
 
-            // Linhas de dados
             dadosFiltrados.forEach(item => {
                 let linha = [
                     `"${item.data}"`,
@@ -308,10 +317,9 @@
                     `"${item.previsao}"`,
                     `"${item.status}"`
                 ];
-                csv.push(linha.join(";"));
+                csv.csv.push(linha.join(";")); // Correção simples na linha de push
             });
 
-            // Cria o arquivo e dispara o download automático
             let arquivoCsv = new Blob(["\ufeff" + csv.join("\n")], { type: 'text/csv;charset=utf-8;' });
             let link = document.createElement("a");
             link.href = URL.createObjectURL(arquivoCsv);
