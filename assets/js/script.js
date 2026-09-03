@@ -14,10 +14,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Estado da Aplicação
+// Estado da Aplicação unificado
 const estado = {
+    telaAtual: 'geral', // 'geral', 'selecao-comprador', 'painel-comprador'
     empresaAtual: 'Zanol & Thomaz',
     classificacaoFiltroAtual: '',
+    compradorLogado: '',
+    empresaCompradorAtual: 'Zanol & Thomaz',
     agendamentos: []
 };
 
@@ -29,8 +32,8 @@ const classificacoes = [
 function sanitizarId(nome) {
     return nome
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // Remove acentos (Fênix vira Fenix)
-        .replace(/[^a-zA-Z0-9]/g, '');   // Remove espaços e caracteres especiais
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9]/g, '');
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -43,55 +46,109 @@ document.addEventListener("DOMContentLoaded", () => {
         snapshot.forEach((docSnap) => {
             estado.agendamentos.push({ id: docSnap.id, ...docSnap.data() });
         });
-        renderizarTabela();
+        renderizarTelasAtuais();
     });
 });
 
 function configurarEventosGerais() {
+    // Sidebar toggles
     document.getElementById('btnToggleSidebar')?.addEventListener('click', toggleSidebar);
+    document.getElementById('btnToggleSidebar2')?.addEventListener('click', toggleSidebar);
     document.getElementById('btnCloseSidebar')?.addEventListener('click', toggleSidebar);
     document.getElementById('sidebarOverlay')?.addEventListener('click', toggleSidebar);
     
-    document.getElementById('btnSalvarAgendamento')?.addEventListener('click', salvarAgendamento);
+    // Ação de Exportar na Tela Geral (Espelho)
     document.getElementById('btnExportarExcel')?.addEventListener('click', exportarExcel);
 
-    // Delegação de eventos para os grupos da sidebar
-    document.querySelectorAll('.menu-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const grupoNome = e.currentTarget.closest('.group-item').getAttribute('data-grupo');
-            toggleGrupoAccordion(grupoNome);
+    // Botão do menu lateral para abrir a Área do Comprador
+    document.getElementById('btnMenuAreaComprador')?.addEventListener('click', () => {
+        estado.telaAtual = 'selecao-comprador';
+        mudarTela('selecao-comprador');
+    });
+
+    // Clique nos cartões dos compradores
+    document.querySelectorAll('.buyer-card').forEach(card => {
+        card.addEventListener('click', () => {
+            estado.compradorLogado = card.getAttribute('data-comprador');
+            estado.telaAtual = 'painel-comprador';
+            estado.empresaCompradorAtual = 'Zanol & Thomaz';
+            
+            document.querySelectorAll('.group-tab-btn').forEach((t, idx) => {
+                if(idx === 0) t.classList.add('active');
+                else t.classList.remove('active');
+            });
+
+            mudarTela('painel-comprador');
         });
     });
 
-    // Delegação de eventos para a tabela (Editar / Remover)
-    document.getElementById('tabelaCorpo').addEventListener('click', (e) => {
+    // Botão Voltar da tela do comprador para a seleção de nomes
+    document.getElementById('btnVoltarSelecao')?.addEventListener('click', () => {
+        estado.telaAtual = 'selecao-comprador';
+        mudarTela('selecao-comprador');
+    });
+
+    // Alternar entre abas de grupos dentro do painel do comprador
+    document.querySelectorAll('.group-tab-btn').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.group-tab-btn').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            estado.empresaCompradorAtual = tab.getAttribute('data-grupo');
+            limparFormularioComprador();
+            renderizarTabelaComprador();
+        });
+    });
+
+    // Salvar registro na tela do comprador
+    document.getElementById('btnSalvarAgendamentoComprador')?.addEventListener('click', salvarAgendamentoComprador);
+
+    // Delegação de eventos para os grupos da sidebar (visão geral)
+    document.querySelectorAll('.menu-btn').forEach(btn => {
+        const parentGroup = btn.closest('.group-item');
+        if (parentGroup) {
+            btn.addEventListener('click', (e) => {
+                const grupoNome = parentGroup.getAttribute('data-grupo');
+                toggleGrupoAccordion(grupoNome);
+            });
+        }
+    });
+
+    // Delegação de eventos para a tabela do Comprador (Editar / Remover)
+    document.getElementById('tabelaCorpoComprador')?.addEventListener('click', (e) => {
         const btnEdit = e.target.closest('.btn-edit');
         const btnDelete = e.target.closest('.btn-delete');
-        
-        if (btnEdit) editarAgendamento(btnEdit.dataset.id);
-        if (btnDelete) excluirAgendamento(btnDelete.dataset.id);
+        if (btnEdit) editarAgendamentoComprador(btnEdit.dataset.id);
+        if (btnDelete) excluirAgendamentoComprador(btnDelete.dataset.id);
     });
 }
 
 function inicializarSelectsEListas() {
-    const selectClass = document.getElementById('inputClassificacao');
-    selectClass.innerHTML = '<option value="">Selecione...</option>';
-    classificacoes.forEach(classe => {
-        const opt = document.createElement('option');
-        opt.value = classe;
-        opt.innerHTML = classe;
-        selectClass.appendChild(opt);
-    });
-
-    const selectPrev = document.getElementById('inputPrevisao');
-    selectPrev.innerHTML = '<option value="">Selecione...</option>';
-    for(let i = 1; i <= 45; i++) {
-        const opt = document.createElement('option');
-        opt.value = i + " Dias";
-        opt.innerHTML = i + " Dias";
-        selectPrev.appendChild(opt);
+    // Select de Classificação do Painel do Comprador
+    const selectClassComprador = document.getElementById('inputClassificacaoComprador');
+    if (selectClassComprador) {
+        selectClassComprador.innerHTML = '<option value="">Selecione...</option>';
+        classificacoes.forEach(classe => {
+            const opt = document.createElement('option');
+            opt.value = classe;
+            opt.innerHTML = classe;
+            selectClassComprador.appendChild(opt);
+        });
     }
 
+    // Selects de Previsão de Faturamento
+    const selectsPrev = [document.getElementById('inputPrevisaoComprador')];
+    selectsPrev.forEach(sel => {
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Selecione...</option>';
+        for(let i = 1; i <= 45; i++) {
+            const opt = document.createElement('option');
+            opt.value = i + " Dias";
+            opt.innerHTML = i + " Dias";
+            sel.appendChild(opt);
+        }
+    });
+
+    // Monta o menu lateral em acordeão (Classificações)
     const grupos = ['Zanol & Thomaz', 'Cella', 'Fênix'];
     grupos.forEach(grupo => {
         const idSanitizado = sanitizarId(grupo);
@@ -105,6 +162,8 @@ function inicializarSelectsEListas() {
                 btn.innerHTML = classe;
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    estado.telaAtual = 'geral';
+                    mudarTela('geral');
                     selecionarSubcategoria(grupo, classe, btn);
                 });
                 container.appendChild(btn);
@@ -129,6 +188,8 @@ function toggleSidebar() {
 function toggleGrupoAccordion(nomeGrupo) {
     const idSanitizado = sanitizarId(nomeGrupo);
     const itemElement = document.getElementById(`group-item-${idSanitizado}`);
+    if (!itemElement) return;
+    
     const estaAberto = itemElement.classList.contains('open');
 
     if (estaAberto) {
@@ -136,6 +197,8 @@ function toggleGrupoAccordion(nomeGrupo) {
     } else {
         document.querySelectorAll('.group-item').forEach(el => el.classList.remove('open'));
         itemElement.classList.add('open');
+        estado.telaAtual = 'geral';
+        mudarTela('geral');
         selecionarGrupo(nomeGrupo);
     }
 }
@@ -150,17 +213,18 @@ function selecionarGrupo(nomeEmpresa) {
 
         if (grupoItem === nomeEmpresa) {
             item.classList.add('active-group');
-            btnGrupo.classList.add('active-main');
+            btnGrupo?.classList.add('active-main');
             item.querySelectorAll('.subclass-btn').forEach(b => b.classList.remove('active'));
         } else {
             item.classList.remove('active-group');
-            btnGrupo.classList.remove('active-main');
+            btnGrupo?.classList.remove('active-main');
         }
     });
 
-    document.getElementById('tituloAgenda').innerText = `Agenda: ${nomeEmpresa.toUpperCase()}`;
-    limparFormulario();
-    renderizarTabela();
+    const titulo = document.getElementById('tituloAgenda');
+    if (titulo) titulo.innerText = `Agenda: ${nomeEmpresa.toUpperCase()}`;
+    
+    renderizarTabelaGeral();
 }
 
 function selecionarSubcategoria(grupo, classificacao, btnElement) {
@@ -170,178 +234,213 @@ function selecionarSubcategoria(grupo, classificacao, btnElement) {
     document.querySelectorAll('.group-item').forEach(item => {
         const grupoItem = item.getAttribute('data-grupo');
         const btnGrupo = item.querySelector('.menu-btn');
+
         if (grupoItem === grupo) {
-            item.classList.add('open', 'active-group');
-            btnGrupo.classList.add('active-main');
+            item.classList.add('active-group');
+            btnGrupo?.classList.add('active-main');
+            item.querySelectorAll('.subclass-btn').forEach(b => {
+                if (b === btnElement) b.classList.add('active');
+                else b.classList.remove('active');
+            });
         } else {
             item.classList.remove('active-group');
-            btnGrupo.classList.remove('active-main');
+            btnGrupo?.classList.remove('active-main');
+            item.querySelectorAll('.subclass-btn').forEach(b => b.classList.remove('active'));
         }
     });
 
-    document.querySelectorAll('.subclass-btn').forEach(b => b.classList.remove('active'));
-    if (btnElement) btnElement.classList.add('active');
-
-    if (classificacao) {
-        document.getElementById('tituloAgenda').innerText = `Agenda: ${grupo.toUpperCase()} — ${classificacao}`;
-        document.getElementById('inputClassificacao').value = classificacao;
-    } else {
-        document.getElementById('tituloAgenda').innerText = `Agenda: ${grupo.toUpperCase()}`;
-    }
-
-    renderizarTabela();
+    const titulo = document.getElementById('tituloAgenda');
+    if (titulo) titulo.innerText = `Agenda: ${grupo.toUpperCase()} — ${classificacao}`;
+    
+    renderizarTabelaGeral();
 }
 
-async function salvarAgendamento() {
-    const idDoc = document.getElementById('editIndex').value;
-    const data = document.getElementById('inputData').value;
-    const classificacao = document.getElementById('inputClassificacao').value;
-    const fornecedor = document.getElementById('inputFornecedor').value.toUpperCase();
-    const previsao = document.getElementById('inputPrevisao').value;
-    const status = document.getElementById('inputStatus').value;
-    const btnSalvar = document.getElementById('btnSalvarAgendamento');
+function mudarTela(nomeTela) {
+    document.getElementById('telaGeral').style.display = (nomeTela === 'geral') ? 'block' : 'none';
+    document.getElementById('telaSelecaoComprador').style.display = (nomeTela === 'selecao-comprador') ? 'block' : 'none';
+    document.getElementById('telaPainelComprador').style.display = (nomeTela === 'painel-comprador') ? 'block' : 'none';
 
-    if(!data || !classificacao || !fornecedor || !previsao) {
-        alert("Por favor, preencha todos os campos obrigatórios.");
+    if (nomeTela === 'geral') {
+        renderizarTabelaGeral();
+    } else if (nomeTela === 'painel-comprador') {
+        const tituloPainel = document.getElementById('tituloPainelComprador');
+        if (tituloPainel) tituloPainel.innerText = `Painel: ${estado.compradorLogado} — Grupo: ${estado.empresaCompradorAtual}`;
+        limparFormularioComprador();
+        renderizarTabelaComprador();
+    }
+}
+
+function renderizarTelasAtuais() {
+    if (estado.telaAtual === 'geral') {
+        renderizarTabelaGeral();
+    } else if (estado.telaAtual === 'painel-comprador') {
+        renderizarTabelaComprador();
+    }
+}
+
+// Função genérica de renderização de tabelas (agora unificada com .flag na coluna de status)
+function renderizarTabelaGenerica(containerId, dados, options = { showActions: false }) {
+    const tbody = document.getElementById(containerId);
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (dados.length === 0) {
+        const tr = document.createElement('tr');
+        // 6 colunas se tiver ações (Data, Classificação, Fornecedor, Previsão, Status, Ações) ou 5 sem ações
+        const colSpanCount = options.showActions ? 6 : 5;
+        tr.innerHTML = `<td colspan="${colSpanCount}" style="text-align: center; color: var(--text-light);">Nenhum registro encontrado.</td>`;
+        tbody.appendChild(tr);
         return;
     }
 
-    // Feedback visual (Loading)
-    btnSalvar.disabled = true;
-    btnSalvar.innerText = 'Salvando...';
-
-    const dataParts = data.split('-');
-    const dataFormatada = `${dataParts[2]}/${dataParts[1]}/${dataParts[0]}`;
-
-    const novoAgendamento = { 
-        empresa: estado.empresaAtual, 
-        dataOrig: data, 
-        data: dataFormatada, 
-        classificacao, 
-        fornecedor, 
-        previsao, 
-        status 
-    };
-
-    try {
-        if (idDoc === "-1") {
-            await addDoc(collection(db, "agendamentos"), novoAgendamento);
-        } else {
-            const docRef = doc(db, "agendamentos", idDoc);
-            await updateDoc(docRef, novoAgendamento);
-        }
-        limparFormulario();
-    } catch (error) {
-        console.error("Erro ao salvar no Firestore: ", error);
-        alert("Erro ao salvar registro. Verifique a conexão.");
-    } finally {
-        // Restaura o botão
-        btnSalvar.disabled = false;
-        btnSalvar.innerText = 'Salvar Registro';
-    }
-}
-
-async function excluirAgendamento(idDoc) {
-    if(confirm("Tem certeza que deseja remover este agendamento?")) {
-        try {
-            await deleteDoc(doc(db, "agendamentos", idDoc));
-        } catch (error) {
-            console.error("Erro ao excluir: ", error);
-            alert("Erro ao remover o item.");
-        }
-    }
-}
-
-function editarAgendamento(idDoc) {
-    const item = estado.agendamentos.find(i => i.id === idDoc);
-    if(item) {
-        document.getElementById('inputData').value = item.dataOrig;
-        document.getElementById('inputClassificacao').value = item.classificacao;
-        document.getElementById('inputFornecedor').value = item.fornecedor;
-        document.getElementById('inputPrevisao').value = item.previsao;
-        document.getElementById('inputStatus').value = item.status;
-        document.getElementById('editIndex').value = idDoc; 
-        
-        document.getElementById('formAgenda').scrollIntoView({ behavior: 'smooth' });
-    }
-}
-
-function renderizarTabela() {
-    const corpo = document.getElementById('tabelaCorpo');
-    corpo.innerHTML = ''; 
-
-    estado.agendamentos.forEach((item) => {
-        const correspondeEmpresa = item.empresa === estado.empresaAtual;
-        const correspondeSub = !estado.classificacaoFiltroAtual || item.classificacao === estado.classificacaoFiltroAtual;
-
-        if(correspondeEmpresa && correspondeSub) {
-            let classeFlag = '';
-            if(item.status === 'AGENDADO') classeFlag = 'agendado';
-            if(item.status === 'EXECUTADO') classeFlag = 'executado';
-            if(item.status === 'EXECUTADO PARCIALMENTE') classeFlag = 'parcial';
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${item.data}</td>
-                <td><strong>${item.classificacao}</strong></td>
-                <td>${item.fornecedor}</td>
-                <td>${item.previsao}</td>
-                <td>${item.status}</td>
-                <td><span class="flag ${classeFlag}">${item.status}</span></td>
+    dados.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${formatarData(item.data)}</td>
+            <td><strong>${item.classificacao || 'GERAL'}</strong></td>
+            <td>${item.fornecedor}</td>
+            <td>${item.previsao}</td>
+            <td><span class="flag ${obterClasseStatus(item.status)}">${item.status}</span></td>
+            ${options.showActions ? `
                 <td>
                     <button class="btn-action btn-edit" data-id="${item.id}">Editar</button>
                     <button class="btn-action btn-delete" data-id="${item.id}">Remover</button>
                 </td>
-            `;
-            corpo.appendChild(tr);
-        }
+            ` : ''}
+        `;
+        tbody.appendChild(tr);
     });
 }
 
-function limparFormulario() {
-    document.getElementById('inputData').value = '';
-    if (!estado.classificacaoFiltroAtual) {
-        document.getElementById('inputClassificacao').value = '';
-    }
-    document.getElementById('inputFornecedor').value = '';
-    document.getElementById('inputPrevisao').value = '';
-    document.getElementById('inputStatus').value = 'AGENDADO';
-    document.getElementById('editIndex').value = '-1';
-}
-
-function exportarExcel() {
-    const dadosFiltrados = estado.agendamentos.filter(item => {
-        const correspondeEmpresa = item.empresa === estado.empresaAtual;
-        const correspondeSub = !estado.classificacaoFiltroAtual || item.classificacao === estado.classificacaoFiltroAtual;
-        return correspondeEmpresa && correspondeSub;
+function renderizarTabelaGeral() {
+    const filtrados = estado.agendamentos.filter(item => {
+        const matchEmpresa = item.empresa === estado.empresaAtual;
+        const matchClassificacao = estado.classificacaoFiltroAtual ? item.classificacao === estado.classificacaoFiltroAtual : true;
+        return matchEmpresa && matchClassificacao;
     });
 
-    if (dadosFiltrados.length === 0) {
-        alert("Não há dados disponíveis para exportar nesta visualização.");
+    // Visão Geral como espelho puro (sem botões de Editar/Excluir)
+    renderizarTabelaGenerica('tabelaCorpo', filtrados, { showActions: false });
+}
+
+function renderizarTabelaComprador() {
+    const filtrados = estado.agendamentos.filter(item => 
+        item.empresa === estado.empresaCompradorAtual
+    );
+
+    // Painel do Comprador com permissão para Editar/Excluir
+    renderizarTabelaGenerica('tabelaCorpoComprador', filtrados, { showActions: true });
+}
+
+function obterClasseStatus(status) {
+    if (status === 'EXECUTADO') return 'executado';
+    if (status === 'EXECUTADO PARCIALMENTE') return 'parcial';
+    return 'agendado';
+}
+
+function formatarData(dataIso) {
+    if (!dataIso) return '';
+    const partes = dataIso.split('-');
+    if (partes.length !== 3) return dataIso;
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+// ================= OPERAÇÕES DO COMPRADOR (FIREBASE) =================
+
+async function salvarAgendamentoComprador() {
+    const data = document.getElementById('inputDataComprador').value;
+    const classificacao = document.getElementById('inputClassificacaoComprador').value;
+    const fornecedor = document.getElementById('inputFornecedorComprador').value.trim();
+    const previsao = document.getElementById('inputPrevisaoComprador').value;
+    const status = document.getElementById('inputStatusComprador').value;
+    const editId = document.getElementById('editIndexComprador').value;
+
+    if (!data || !classificacao || !fornecedor || !previsao || !status) {
+        alert("Por favor, preencha todos os campos do agendamento.");
         return;
     }
 
-    let csv = [];
-    csv.push(["Data", "Classificacao", "Fornecedor", "Previsao Faturamento", "Status"].join(";"));
+    const dadosRegistro = {
+        empresa: estado.empresaCompradorAtual,
+        data,
+        classificacao,
+        fornecedor,
+        previsao,
+        status,
+        comprador: estado.compradorLogado,
+        atualizadoEm: new Date().toISOString()
+    };
 
-    dadosFiltrados.forEach(item => {
-        let linha = [
-            `"${item.data}"`,
-            `"${item.classificacao}"`,
-            `"${item.fornecedor}"`,
-            `"${item.previsao}"`,
-            `"${item.status}"`
-        ];
-        csv.push(linha.join(";"));
+    try {
+        if (editId === "-1") {
+            await addDoc(collection(db, "agendamentos"), dadosRegistro);
+        } else {
+            await updateDoc(doc(db, "agendamentos", editId), dadosRegistro);
+        }
+        limparFormularioComprador();
+    } catch (error) {
+        console.error("Erro ao salvar no Firestore:", error);
+        alert("Erro ao salvar o registro.");
+    }
+}
+
+function editarAgendamentoComprador(id) {
+    const item = estado.agendamentos.find(a => a.id === id);
+    if (!item) return;
+
+    document.getElementById('editIndexComprador').value = item.id;
+    document.getElementById('inputDataComprador').value = item.data;
+    document.getElementById('inputClassificacaoComprador').value = item.classificacao || '';
+    document.getElementById('inputFornecedorComprador').value = item.fornecedor;
+    document.getElementById('inputPrevisaoComprador').value = item.previsao;
+    document.getElementById('inputStatusComprador').value = item.status;
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function excluirAgendamentoComprador(id) {
+    if (confirm("Deseja realmente remover este agendamento?")) {
+        try {
+            await deleteDoc(doc(db, "agendamentos", id));
+        } catch (error) {
+            console.error("Erro ao deletar documento:", error);
+            alert("Erro ao excluir o registro.");
+        }
+    }
+}
+
+function limparFormularioComprador() {
+    document.getElementById('editIndexComprador').value = "-1";
+    document.getElementById('inputDataComprador').value = '';
+    document.getElementById('inputClassificacaoComprador').value = '';
+    document.getElementById('inputFornecedorComprador').value = '';
+    document.getElementById('inputPrevisaoComprador').value = '';
+    document.getElementById('inputStatusComprador').value = 'AGENDADO';
+}
+
+function exportarExcel() {
+    const filtrados = estado.agendamentos.filter(item => {
+        const matchEmpresa = item.empresa === estado.empresaAtual;
+        const matchClassificacao = estado.classificacaoFiltroAtual ? item.classificacao === estado.classificacaoFiltroAtual : true;
+        return matchEmpresa && matchClassificacao;
     });
 
-    let arquivoCsv = new Blob(["\ufeff" + csv.join("\n")], { type: 'text/csv;charset=utf-8;' });
-    let link = document.createElement("a");
-    link.href = URL.createObjectURL(arquivoCsv);
-    const sufixoSub = estado.classificacaoFiltroAtual ? `_${estado.classificacaoFiltroAtual}` : '_Geral';
-    link.download = `Agenda_${estado.empresaAtual.replace(/[^a-zA-Z0-9]/g, "_")}${sufixoSub}.csv`;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (filtrados.length === 0) {
+        alert("Não há dados para exportar nesta visualização.");
+        return;
+    }
+
+    let csv = "Data\tClassificação\tFornecedor\tPrevisão Faturamento\tStatus\n";
+    filtrados.forEach(item => {
+        csv += `${formatarData(item.data)}\t${item.classificacao || 'GERAL'}\t${item.fornecedor}\t${item.previsao}\t${item.status}\n`;
+    });
+
+    const blob = new Blob(["\ufeff" + csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Agenda_${estado.empresaAtual.replace(/[^a-zA-Z0-9]/g, '_')}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 }

@@ -11,14 +11,15 @@
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <div class="app-container" id="appContainer">
+        <!-- BARRA LATERAL -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h2 class="sidebar-title">AGENDA DE COMPRAS</h2>
-                <button class="close-sidebar-btn" id="btnCloseSidebar">✕</button>
+                <button class="close-sidebar-btn" id="btnCloseSidebar" title="Fechar Menu">✕</button>
             </div>
             
             <div class="sidebar-menu">
-                <span class="menu-category-title">GRUPOS DE LOJAS</span>
+                <span class="menu-category-title">GRUPOS DE LOJAS (ESPELHO)</span>
                 
                 <div class="group-item" id="group-item-ZanolThomaz" data-grupo="Zanol & Thomaz">
                     <button class="menu-btn">
@@ -43,78 +44,183 @@
                     </button>
                     <div class="subclass-list" id="sub-list-Fenix"></div>
                 </div>
+
+                <!-- Acesso à Área do Comprador -->
+                <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                    <span class="menu-category-title">ÁREA OPERACIONAL</span>
+                    <button id="btnMenuAreaComprador" class="menu-btn" style="width: 100%; text-align: left; background: rgba(255,255,255,0.05); margin-top: 5px; cursor: pointer;">
+                        <span class="group-name">👤 ÁREA DO COMPRADOR</span>
+                    </button>
+                </div>
             </div>
         </aside>
 
+        <!-- CONTAINER PRINCIPAL -->
         <main class="main-content">
-            <div class="content-header">
-<div class="header-title-group">
-        <button class="hamburger-btn" id="btnToggleSidebar" title="Recolher / Expandir Menu">☰</button>
-        <div>
-            <h2 id="tituloAgenda">Agenda: ZANOL & THOMAZ</h2>
-            <p>Gerenciamento integrado de cronogramas e faturamentos por categoria.</p>
+            
+            <!-- TELA 1: VISÃO GERAL / ESPELHO -->
+            <section id="telaGeral" class="app-screen">
+                <div class="content-header">
+                    <div class="header-title-group">
+                        <button class="hamburger-btn" id="btnToggleSidebar" title="Recolher / Expandir Menu">☰</button>
+                        <div>
+                            <h2 id="tituloAgenda">Agenda: ZANOL & THOMAZ</h2>
+                            <p>Visualização e exportação de cronogramas e faturamentos por categoria (Espelho para Supervisores e Fornecedores).</p>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-export" id="btnExportarExcel">Exportar Excel</button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Classificação</th>
+                                <th>Fornecedor</th>
+                                <th>Previsão Faturamento</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaCorpo"></tbody>
+                    </table>
+                </div>
+            </section>
+
+<!-- TELA 2: SELEÇÃO DE COMPRADORES -->
+<section id="telaSelecaoComprador" class="app-screen selection-screen" style="display: none;">
+    <div class="content-header">
+        <div class="header-title-group">
+            <button class="hamburger-btn" id="btnToggleSidebar2" title="Recolher / Expandir Menu">☰</button>
+            <div>
+                <h2>Área do Comprador</h2>
+                <p>Selecione o seu perfil para acessar o painel de lançamentos.</p>
+            </div>
         </div>
     </div>
-    
-    <button class="btn-export" id="btnExportarExcel">Exportar Excel</button>
-</div>
 
-            <div class="form-container" id="formAgenda">
-                <input type="hidden" id="editIndex" value="-1">
-                
-                <div class="form-group">
-                    <label>Data</label>
-                    <input type="date" id="inputData" required>
+    <div class="selection-content">
+        <h3 class="selection-subtitle">Quem está acessando?</h3>
+        
+        <div class="buyers-grid">
+            <button class="buyer-card" data-comprador="Lucas">
+                <div class="buyer-avatar">L</div>
+                <span class="buyer-name">Lucas</span>
+            </button>
+            <button class="buyer-card" data-comprador="Gabriela">
+                <div class="buyer-avatar">G</div>
+                <span class="buyer-name">Gabriela</span>
+            </button>
+            <button class="buyer-card" data-comprador="Nayara">
+                <div class="buyer-avatar">N</div>
+                <span class="buyer-name">Nayara</span>
+            </button>
+            <button class="buyer-card" data-comprador="Brenda">
+                <div class="buyer-avatar">B</div>
+                <span class="buyer-name">Brenda</span>
+            </button>
+            <button class="buyer-card" data-comprador="Leandro">
+                <div class="buyer-avatar">L</div>
+                <span class="buyer-name">Leandro</span>
+            </button>
+            <button class="buyer-card" data-comprador="Matheus">
+                <div class="buyer-avatar">M</div>
+                <span class="buyer-name">Matheus</span>
+            </button>
+            <button class="buyer-card" data-comprador="Victôria">
+                <div class="buyer-avatar">V</div>
+                <span class="buyer-name">Victôria</span>
+            </button>
+            <button class="buyer-card" data-comprador="Tatiana">
+                <div class="buyer-avatar">T</div>
+                <span class="buyer-name">Tatiana</span>
+            </button>
+            <button class="buyer-card" data-comprador="Letícia">
+                <div class="buyer-avatar">L</div>
+                <span class="buyer-name">Letícia</span>
+            </button>
+            <button class="buyer-card" data-comprador="Caíro">
+                <div class="buyer-avatar">C</div>
+                <span class="buyer-name">Caíro</span>
+            </button>
+        </div>
+    </div>
+</section>
+
+            <!-- TELA 3: PAINEL EXCLUSIVO DO COMPRADOR -->
+            <section id="telaPainelComprador" class="app-screen" style="display: none;">
+                <div class="content-header" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                    <button id="btnVoltarSelecao" class="btn-secondary" style="padding: 6px 12px; font-size: 13px; cursor: pointer;">← Voltar à Seleção de Compradores</button>
+                    <h2 id="tituloPainelComprador">Painel do Comprador</h2>
+                    <p>Gerencie, cadastre, edite e remova os lançamentos do grupo selecionado.</p>
                 </div>
-                
-                <div class="form-group">
-                    <label>Classificação</label>
-                    <select id="inputClassificacao" required>
-                        <option value="">Selecione...</option>
-                    </select>
+
+                <!-- Abas dos Grupos de Lojas -->
+                <div class="buyer-groups-tabs" style="display: flex; gap: 10px; margin: 20px 0;">
+                    <button class="group-tab-btn active" data-grupo="Zanol & Thomaz" style="padding: 8px 16px; cursor: pointer;">Zanol & Thomaz</button>
+                    <button class="group-tab-btn" data-grupo="Cella" style="padding: 8px 16px; cursor: pointer;">Cella</button>
+                    <button class="group-tab-btn" data-grupo="Fênix" style="padding: 8px 16px; cursor: pointer;">Fênix</button>
                 </div>
 
-                <div class="form-group">
-                    <label>Fornecedor</label>
-                    <input type="text" id="inputFornecedor" placeholder="Nome do fornecedor..." required>
+                <!-- Formulário do Comprador -->
+                <div class="form-container" id="formAgendaComprador">
+                    <input type="hidden" id="editIndexComprador" value="-1">
+                    
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="date" id="inputDataComprador" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Classificação</label>
+                        <select id="inputClassificacaoComprador" required>
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fornecedor</label>
+                        <input type="text" id="inputFornecedorComprador" placeholder="Nome do fornecedor..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Previsão Faturamento</label>
+                        <select id="inputPrevisaoComprador" required>
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="inputStatusComprador" required>
+                            <option value="AGENDADO">Agendado</option>
+                            <option value="EXECUTADO">Executado</option>
+                            <option value="EXECUTADO PARCIALMENTE">Executado Parcialmente</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-add" id="btnSalvarAgendamentoComprador">Salvar Registro</button>
                 </div>
 
-                <div class="form-group">
-                    <label>Previsão Faturamento</label>
-                    <select id="inputPrevisao" required>
-                        <option value="">Selecione...</option>
-                    </select>
+                <!-- Tabela da Agenda do Comprador -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Classificação</th>
+                                <th>Fornecedor</th>
+                                <th>Previsão Faturamento</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaCorpoComprador"></tbody>
+                    </table>
                 </div>
+            </section>
 
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="inputStatus" required>
-                        <option value="AGENDADO">Agendado</option>
-                        <option value="EXECUTADO">Executado</option>
-                        <option value="EXECUTADO PARCIALMENTE">Executado Parcialmente</option>
-                    </select>
-                </div>
-
-                <button class="btn-add" id="btnSalvarAgendamento">Salvar Registro</button>
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Classificação</th>
-                            <th>Fornecedor</th>
-                            <th>Previsão Faturamento</th>
-                            <th>Status</th>
-                            <th>Indicador</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaCorpo">
-                        </tbody>
-                </table>
-            </div>
         </main>
     </div>
 
