@@ -278,7 +278,6 @@ function renderizarTelasAtuais() {
     }
 }
 
-// Função genérica de renderização de tabelas (agora unificada com .flag na coluna de status)
 function renderizarTabelaGenerica(containerId, dados, options = { showActions: false }) {
     const tbody = document.getElementById(containerId);
     if (!tbody) return;
@@ -286,8 +285,8 @@ function renderizarTabelaGenerica(containerId, dados, options = { showActions: f
 
     if (dados.length === 0) {
         const tr = document.createElement('tr');
-        // 6 colunas se tiver ações (Data, Classificação, Fornecedor, Previsão, Status, Ações) ou 5 sem ações
-        const colSpanCount = options.showActions ? 6 : 5;
+        // Total de colunas: 7 sem ações ou 8 com ações
+        const colSpanCount = options.showActions ? 8 : 7;
         tr.innerHTML = `<td colspan="${colSpanCount}" style="text-align: center; color: var(--text-light);">Nenhum registro encontrado.</td>`;
         tbody.appendChild(tr);
         return;
@@ -298,7 +297,9 @@ function renderizarTabelaGenerica(containerId, dados, options = { showActions: f
         tr.innerHTML = `
             <td>${formatarData(item.data)}</td>
             <td><strong>${item.classificacao || 'GERAL'}</strong></td>
+            <td>${item.categoria || ''}</td>
             <td>${item.fornecedor}</td>
+            <td>${item.acaoComprador || ''}</td>
             <td>${item.previsao}</td>
             <td><span class="flag ${obterClasseStatus(item.status)}">${item.status}</span></td>
             ${options.showActions ? `
@@ -325,10 +326,11 @@ function renderizarTabelaGeral() {
 
 function renderizarTabelaComprador() {
     const filtrados = estado.agendamentos.filter(item => 
-        item.empresa === estado.empresaCompradorAtual
+        item.empresa === estado.empresaCompradorAtual && 
+        item.comprador === estado.compradorLogado
     );
 
-    // Painel do Comprador com permissão para Editar/Excluir
+    // Painel do Comprador individual (apenas os registros do comprador logado)
     renderizarTabelaGenerica('tabelaCorpoComprador', filtrados, { showActions: true });
 }
 
@@ -350,12 +352,14 @@ function formatarData(dataIso) {
 async function salvarAgendamentoComprador() {
     const data = document.getElementById('inputDataComprador').value;
     const classificacao = document.getElementById('inputClassificacaoComprador').value;
+    const categoria = document.getElementById('inputCategoriaComprador').value.trim();
     const fornecedor = document.getElementById('inputFornecedorComprador').value.trim();
+    const acaoComprador = document.getElementById('inputAcaoComprador').value;
     const previsao = document.getElementById('inputPrevisaoComprador').value;
     const status = document.getElementById('inputStatusComprador').value;
     const editId = document.getElementById('editIndexComprador').value;
 
-    if (!data || !classificacao || !fornecedor || !previsao || !status) {
+    if (!data || !classificacao || !categoria || !fornecedor || !acaoComprador || !previsao || !status) {
         alert("Por favor, preencha todos os campos do agendamento.");
         return;
     }
@@ -364,7 +368,9 @@ async function salvarAgendamentoComprador() {
         empresa: estado.empresaCompradorAtual,
         data,
         classificacao,
+        categoria,
         fornecedor,
+        acaoComprador,
         previsao,
         status,
         comprador: estado.compradorLogado,
@@ -391,7 +397,9 @@ function editarAgendamentoComprador(id) {
     document.getElementById('editIndexComprador').value = item.id;
     document.getElementById('inputDataComprador').value = item.data;
     document.getElementById('inputClassificacaoComprador').value = item.classificacao || '';
+    document.getElementById('inputCategoriaComprador').value = item.categoria || '';
     document.getElementById('inputFornecedorComprador').value = item.fornecedor;
+    document.getElementById('inputAcaoComprador').value = item.acaoComprador || '';
     document.getElementById('inputPrevisaoComprador').value = item.previsao;
     document.getElementById('inputStatusComprador').value = item.status;
     
@@ -413,7 +421,9 @@ function limparFormularioComprador() {
     document.getElementById('editIndexComprador').value = "-1";
     document.getElementById('inputDataComprador').value = '';
     document.getElementById('inputClassificacaoComprador').value = '';
+    document.getElementById('inputCategoriaComprador').value = '';
     document.getElementById('inputFornecedorComprador').value = '';
+    document.getElementById('inputAcaoComprador').value = '';
     document.getElementById('inputPrevisaoComprador').value = '';
     document.getElementById('inputStatusComprador').value = 'AGENDADO';
 }
@@ -430,16 +440,26 @@ function exportarExcel() {
         return;
     }
 
-    let csv = "Data\tClassificação\tFornecedor\tPrevisão Faturamento\tStatus\n";
+    let csv = "Data;Classificação;Categoria;Fornecedor;Ação do Comprador;Previsão Faturamento;Status\n";
+    
     filtrados.forEach(item => {
-        csv += `${formatarData(item.data)}\t${item.classificacao || 'GERAL'}\t${item.fornecedor}\t${item.previsao}\t${item.status}\n`;
+        const data = formatarData(item.data) || '';
+        const classificacao = (item.classificacao || 'GERAL').replace(/;/g, ',');
+        const categoria = (item.categoria || '').replace(/;/g, ',');
+        const fornecedor = (item.fornecedor || '').replace(/;/g, ',');
+        const acaoComprador = (item.acaoComprador || '').replace(/;/g, ',');
+        const previsao = (item.previsao || '').replace(/;/g, ',');
+        const status = (item.status || '').replace(/;/g, ',');
+
+        csv += `${data};${classificacao};${categoria};${fornecedor};${acaoComprador};${previsao};${status}\n`;
     });
 
-    const blob = new Blob(["\ufeff" + csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    // Alterado para extensão .csv e MIME type correto
+    const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Agenda_${estado.empresaAtual.replace(/[^a-zA-Z0-9]/g, '_')}.xls`;
+    a.download = `Agenda_${estado.empresaAtual.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

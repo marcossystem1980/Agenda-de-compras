@@ -414,7 +414,7 @@ ABAS E FORMULÁRIOS
     display: flex; 
     flex-direction: column; 
     flex: 1; 
-    min-width: 150px; 
+    min-width: 170px; 
 }
 
 .form-group label { 
@@ -458,7 +458,7 @@ TABELAS
 table { 
     width: 100%; 
     border-collapse: collapse; 
-    min-width: 900px; 
+    min-width: 1100px; 
 }
 
 th, td { 
