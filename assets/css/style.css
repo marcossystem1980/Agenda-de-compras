@@ -278,6 +278,23 @@ CABEÇALHOS E CONTEÚDO
     background-color: var(--primary-hover); 
 }
 
+/* Container do grupo de botões do topo da tela geral */
+.content-header > div:last-child {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Container de botões no topo da tabela do comprador */
+.acoes-topo-tabela {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
 /* ==========================================
 TELA DE SELEÇÃO E COMPONENTES (GRID/CARDS)
    ========================================== */
@@ -448,41 +465,123 @@ ABAS E FORMULÁRIOS
 /* ==========================================
 TABELAS
    ========================================== */
-.table-container { 
-    background: var(--white); 
-    border-radius: 8px; 
-    box-shadow: 0 2px 6px rgba(0,0,0,0.02); 
-    overflow-x: auto; 
+.table-container {  
+    background: var(--white);  
+    border-radius: 8px;  
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);  
+    overflow-x: auto;  
+    min-height: 420px; 
+    position: relative;
 }
 
-table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    min-width: 1100px; 
+table {  
+    width: 100%;  
+    border-collapse: collapse;  
+    min-width: 1100px;  
 }
 
-th, td { 
-    padding: 14px 18px; 
-    border-bottom: 1px solid #f1f2f6; 
-    text-align: left; 
-    font-size: 13px; 
+#tabelaCorpo, 
+#tabelaCorpoComprador {
+    min-height: 320px;
+    display: table-row-group;
 }
 
-th { 
-    background-color: #f8f9fa; 
-    font-weight: 700; 
-    color: #2c3e50; 
-    text-transform: uppercase; 
-    font-size: 11px; 
-    letter-spacing: 0.5px; 
+th, td {  
+    padding: 14px 18px;  
+    border-bottom: 1px solid #f1f2f6;  
+    text-align: left;  
+    font-size: 13px;  
 }
 
-tr:hover { 
-    background-color: #fafbfc; 
+th {  
+    background-color: #f8f9fa;  
+    font-weight: 700;  
+    color: #2c3e50;  
+    text-transform: uppercase;  
+    font-size: 11px;  
+    letter-spacing: 0.5px;  
+}
+
+tr:hover {  
+    background-color: #fafbfc;  
+}
+
+/* Torna o cabeçalho interativo para ordenação */
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+
+th.sortable:hover {
+    background-color: rgba(0, 0, 0, 0.05); 
+}
+
+/* Indicador de direção da ordenação (Seta) */
+th.sortable::after {
+    content: ' ↕';
+    font-size: 0.8rem;
+    opacity: 0.4;
+    margin-left: 5px;
+}
+
+th.sortable.asc::after {
+    content: ' ▲';
+    opacity: 0.9;
+    color: var(--primary-color);
+}
+
+th.sortable.desc::after {
+    content: ' ▼';
+    opacity: 0.9;
+    color: var(--primary-color);
+}
+
+/* Estilo do cabeçalho de status */
+th.status-header {
+    position: relative;
+    cursor: pointer;
+}
+
+/* Caixinha flutuante do filtro de status */
+.status-filter-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #ffffff;
+    border: 1px solid #dcdcdc;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    z-index: 1000;
+    min-width: 200px;
+    padding: 6px 0;
+    animation: fadeIn 0.15s ease-in-out;
+}
+
+/* Opções individuais dentro do dropdown */
+.status-filter-dropdown .status-option {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: #333333;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.status-filter-dropdown .status-option:hover {
+    background-color: #f0f4f8;
+    color: #007bff;
+    font-weight: 500;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ==========================================
-STATUS / BADGES (Estilo unificado)
+STATUS / BADGES
    ========================================== */
 .flag { 
     padding: 5px 12px; 
@@ -512,19 +611,32 @@ STATUS / BADGES (Estilo unificado)
 } 
 
 /* ==========================================
-BOTÕES
+BOTÕES (Padronizados com altura e peso visual corretos)
    ========================================== */
+.content-header .btn-limpar-filtros,
+.content-header .btn-export,
+#btnLimparFiltrosGeral,
+#btnLimparFiltrosComprador,
+.btn-export {
+    height: 40px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
 .btn-export {
     background-color: #27ae60; 
     color: var(--white); 
-    border: none;
-    padding: 10px 18px; 
-    border-radius: 6px; 
-    font-weight: 600; 
-    cursor: pointer;
-    transition: background 0.2s; 
-    font-size: 13px; 
-    box-shadow: 0 2px 4px rgba(39, 174, 96, 0.2); 
+    box-shadow: 0 2px 4px rgba(39, 174, 96, 0.15); 
     flex-shrink: 0;
 }
 
@@ -575,17 +687,38 @@ BOTÕES
 
 .btn-secondary { 
     background-color: #6c757d; 
-    color: white; 
+    color: var(--white); 
     border: none; 
     padding: 8px 14px; 
     border-radius: 6px; 
     cursor: pointer; 
-    margin-bottom: 15px; 
     transition: background 0.2s;
+    font-size: 13px;
+    font-weight: 500;
 }
 
 .btn-secondary:hover { 
     background-color: #5a6268; 
+}
+
+/* Botão de Limpar Filtros Padronizado */
+.btn-limpar-filtros,
+#btnLimparFiltrosGeral,
+#btnLimparFiltrosComprador {
+    background-color: #64748b;
+    color: var(--white);
+}
+
+.btn-limpar-filtros:hover,
+#btnLimparFiltrosGeral:hover,
+#btnLimparFiltrosComprador:hover {
+    background-color: #475569;
+}
+
+.btn-limpar-filtros:active,
+#btnLimparFiltrosGeral:active,
+#btnLimparFiltrosComprador:active {
+    transform: scale(0.98);
 }
 
 /* ==========================================
@@ -615,7 +748,13 @@ RESPONSIVIDADE
         gap: 15px; 
         align-items: stretch; 
     }
-    .btn-export { 
-        width: 100%; 
+    .content-header > div:last-child {
+        width: 100%;
+        justify-content: stretch;
+    }
+    .content-header .btn-limpar-filtros,
+    .content-header .btn-export,
+    #btnLimparFiltrosGeral { 
+        flex: 1;
     }
 }

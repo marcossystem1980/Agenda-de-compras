@@ -14,14 +14,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Estado da Aplicação unificado
 const estado = {
-    telaAtual: 'geral', // 'geral', 'selecao-comprador', 'painel-comprador'
+    telaAtual: 'geral',
     empresaAtual: 'Zanol & Thomaz',
-    classificacaoFiltroAtual: '',
+    classificacaoFiltroAtual: '', 
     compradorLogado: '',
     empresaCompradorAtual: 'Zanol & Thomaz',
-    agendamentos: []
+    agendamentos: [],
+    agendasGerais: {},
+    agendasCompradores: {}
 };
 
 const classificacoes = [
@@ -36,9 +37,33 @@ function sanitizarId(nome) {
         .replace(/[^a-zA-Z0-9]/g, '');
 }
 
+function obterEstadoAgendaAtual() {
+    const chaveAgenda = `${estado.empresaAtual}__${estado.classificacaoFiltroAtual || 'GERAL'}`;
+    if (!estado.agendasGerais[chaveAgenda]) {
+        estado.agendasGerais[chaveAgenda] = {
+            statusFiltro: '',
+            ordenacao: { coluna: 'data', asc: true }
+        };
+    }
+    return estado.agendasGerais[chaveAgenda];
+}
+
+function obterEstadoCompradorAtual() {
+    const chaveComprador = `${estado.compradorLogado}__${estado.empresaCompradorAtual}`;
+    if (!estado.agendasCompradores[chaveComprador]) {
+        estado.agendasCompradores[chaveComprador] = {
+            statusFiltro: '',
+            ordenacao: { coluna: 'data', asc: true }
+        };
+    }
+    return estado.agendasCompradores[chaveComprador];
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     inicializarSelectsEListas();
     configurarEventosGerais();
+    configurarOrdenacaoCabecalhos();
+    configurarFiltroStatus();
     selecionarGrupo('Zanol & Thomaz');
 
     onSnapshot(collection(db, "agendamentos"), (snapshot) => {
@@ -51,22 +76,36 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function configurarEventosGerais() {
-    // Sidebar toggles
     document.getElementById('btnToggleSidebar')?.addEventListener('click', toggleSidebar);
     document.getElementById('btnToggleSidebar2')?.addEventListener('click', toggleSidebar);
     document.getElementById('btnCloseSidebar')?.addEventListener('click', toggleSidebar);
     document.getElementById('sidebarOverlay')?.addEventListener('click', toggleSidebar);
     
-    // Ação de Exportar na Tela Geral (Espelho)
+    // Botões de Exportação Excel (Geral e Painel do Comprador)
     document.getElementById('btnExportarExcel')?.addEventListener('click', exportarExcel);
+    document.getElementById('btnExportarComprador')?.addEventListener('click', exportarExcel);
 
-    // Botão do menu lateral para abrir a Área do Comprador
+    // Botão Limpar Filtros Geral (Integrado de forma estática e otimizada)
+    document.getElementById('btnLimparFiltrosGeral')?.addEventListener('click', () => {
+        const chaveAgenda = `${estado.empresaAtual}__${estado.classificacaoFiltroAtual || 'GERAL'}`;
+        delete estado.agendasGerais[chaveAgenda];
+        sincronizarSetasOrdenacaoVisuais();
+        renderizarTelasAtuais();
+    });
+
+    // Botão Limpar Filtros Comprador
+    document.getElementById('btnLimparFiltrosComprador')?.addEventListener('click', () => {
+        const chaveComprador = `${estado.compradorLogado}__${estado.empresaCompradorAtual}`;
+        delete estado.agendasCompradores[chaveComprador];
+        sincronizarSetasOrdenacaoVisuais();
+        renderizarTelasAtuais();
+    });
+
     document.getElementById('btnMenuAreaComprador')?.addEventListener('click', () => {
         estado.telaAtual = 'selecao-comprador';
         mudarTela('selecao-comprador');
     });
 
-    // Clique nos cartões dos compradores
     document.querySelectorAll('.buyer-card').forEach(card => {
         card.addEventListener('click', () => {
             estado.compradorLogado = card.getAttribute('data-comprador');
@@ -82,38 +121,35 @@ function configurarEventosGerais() {
         });
     });
 
-    // Botão Voltar da tela do comprador para a seleção de nomes
     document.getElementById('btnVoltarSelecao')?.addEventListener('click', () => {
         estado.telaAtual = 'selecao-comprador';
         mudarTela('selecao-comprador');
     });
 
-    // Alternar entre abas de grupos dentro do painel do comprador
     document.querySelectorAll('.group-tab-btn').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.group-tab-btn').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             estado.empresaCompradorAtual = tab.getAttribute('data-grupo');
+            
             limparFormularioComprador();
+            sincronizarSetasOrdenacaoVisuais();
             renderizarTabelaComprador();
         });
     });
 
-    // Salvar registro na tela do comprador
     document.getElementById('btnSalvarAgendamentoComprador')?.addEventListener('click', salvarAgendamentoComprador);
 
-    // Delegação de eventos para os grupos da sidebar (visão geral)
     document.querySelectorAll('.menu-btn').forEach(btn => {
         const parentGroup = btn.closest('.group-item');
         if (parentGroup) {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', () => {
                 const grupoNome = parentGroup.getAttribute('data-grupo');
                 toggleGrupoAccordion(grupoNome);
             });
         }
     });
 
-    // Delegação de eventos para a tabela do Comprador (Editar / Remover)
     document.getElementById('tabelaCorpoComprador')?.addEventListener('click', (e) => {
         const btnEdit = e.target.closest('.btn-edit');
         const btnDelete = e.target.closest('.btn-delete');
@@ -122,33 +158,107 @@ function configurarEventosGerais() {
     });
 }
 
+function configurarFiltroStatus() {
+    document.querySelectorAll('th.status-header').forEach(th => {
+        if (!th.style.position) {
+            th.style.position = 'relative';
+        }
+
+        th.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            let dropdown = th.querySelector('.status-filter-dropdown');
+            if (dropdown) {
+                dropdown.remove();
+                return;
+            }
+
+            document.querySelectorAll('.status-filter-dropdown').forEach(el => el.remove());
+
+            dropdown = document.createElement('div');
+            dropdown.className = 'status-filter-dropdown';
+            dropdown.innerHTML = `
+                <div class="status-option" data-status="">Todos os Status</div>
+                <div class="status-option" data-status="AGENDADO">AGENDADO</div>
+                <div class="status-option" data-status="EXECUTADO">EXECUTADO</div>
+                <div class="status-option" data-status="EXECUTADO PARCIALMENTE">EXECUTADO PARCIALMENTE</div>
+            `;
+
+            dropdown.querySelectorAll('.status-option').forEach(opt => {
+                opt.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    const statusSelecionado = opt.getAttribute('data-status');
+                    
+                    if (estado.telaAtual === 'geral') {
+                        const agendaAtual = obterEstadoAgendaAtual();
+                        agendaAtual.statusFiltro = statusSelecionado;
+                    } else if (estado.telaAtual === 'painel-comprador') {
+                        const compradorAtual = obterEstadoCompradorAtual();
+                        compradorAtual.statusFiltro = statusSelecionado;
+                    }
+
+                    dropdown.remove();
+                    renderizarTelasAtuais();
+                });
+            });
+
+            th.appendChild(dropdown);
+        });
+    });
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.status-filter-dropdown').forEach(el => el.remove());
+    });
+}
+
+function configurarOrdenacaoCabecalhos() {
+    document.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+            const coluna = th.getAttribute('data-column');
+            
+            let objOrdenacao;
+            if (estado.telaAtual === 'geral') {
+                objOrdenacao = obterEstadoAgendaAtual().ordenacao;
+            } else if (estado.telaAtual === 'painel-comprador') {
+                objOrdenacao = obterEstadoCompradorAtual().ordenacao;
+            }
+
+            if (objOrdenacao.coluna === coluna) {
+                objOrdenacao.asc = !objOrdenacao.asc;
+            } else {
+                objOrdenacao.coluna = coluna;
+                objOrdenacao.asc = true;
+            }
+
+            sincronizarSetasOrdenacaoVisuais();
+            renderizarTelasAtuais();
+        });
+    });
+}
+
 function inicializarSelectsEListas() {
-    // Select de Classificação do Painel do Comprador
     const selectClassComprador = document.getElementById('inputClassificacaoComprador');
     if (selectClassComprador) {
         selectClassComprador.innerHTML = '<option value="">Selecione...</option>';
         classificacoes.forEach(classe => {
             const opt = document.createElement('option');
             opt.value = classe;
-            opt.innerHTML = classe;
+            opt.textContent = classe;
             selectClassComprador.appendChild(opt);
         });
     }
 
-    // Selects de Previsão de Faturamento
-    const selectsPrev = [document.getElementById('inputPrevisaoComprador')];
-    selectsPrev.forEach(sel => {
-        if (!sel) return;
-        sel.innerHTML = '<option value="">Selecione...</option>';
+    const selPrev = document.getElementById('inputPrevisaoComprador');
+    if (selPrev) {
+        selPrev.innerHTML = '<option value="">Selecione...</option>';
         for(let i = 1; i <= 45; i++) {
             const opt = document.createElement('option');
             opt.value = i + " Dias";
-            opt.innerHTML = i + " Dias";
-            sel.appendChild(opt);
+            opt.textContent = i + " Dias";
+            selPrev.appendChild(opt);
         }
-    });
+    }
 
-    // Monta o menu lateral em acordeão (Classificações)
     const grupos = ['Zanol & Thomaz', 'Cella', 'Fênix'];
     grupos.forEach(grupo => {
         const idSanitizado = sanitizarId(grupo);
@@ -159,7 +269,7 @@ function inicializarSelectsEListas() {
             classificacoes.forEach(classe => {
                 const btn = document.createElement('button');
                 btn.className = 'subclass-btn';
-                btn.innerHTML = classe;
+                btn.textContent = classe;
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     estado.telaAtual = 'geral';
@@ -224,6 +334,7 @@ function selecionarGrupo(nomeEmpresa) {
     const titulo = document.getElementById('tituloAgenda');
     if (titulo) titulo.innerText = `Agenda: ${nomeEmpresa.toUpperCase()}`;
     
+    sincronizarSetasOrdenacaoVisuais();
     renderizarTabelaGeral();
 }
 
@@ -252,7 +363,33 @@ function selecionarSubcategoria(grupo, classificacao, btnElement) {
     const titulo = document.getElementById('tituloAgenda');
     if (titulo) titulo.innerText = `Agenda: ${grupo.toUpperCase()} — ${classificacao}`;
     
+    sincronizarSetasOrdenacaoVisuais();
     renderizarTabelaGeral();
+}
+
+function sincronizarSetasOrdenacaoVisuais() {
+    let colunaAtiva = '';
+    let ascAtivo = true;
+
+    if (estado.telaAtual === 'geral') {
+        const configAgenda = obterEstadoAgendaAtual();
+        colunaAtiva = configAgenda.ordenacao.coluna;
+        ascAtivo = configAgenda.ordenacao.asc;
+    } else if (estado.telaAtual === 'painel-comprador') {
+        const configComprador = obterEstadoCompradorAtual();
+        colunaAtiva = configComprador.ordenacao.coluna;
+        ascAtivo = configComprador.ordenacao.asc;
+    }
+
+    const tabelaAtiva = document.querySelector(`#${estado.telaAtual === 'geral' ? 'tabelaCorpo' : 'tabelaCorpoComprador'}`)?.closest('table');
+    if (tabelaAtiva) {
+        tabelaAtiva.querySelectorAll('th.sortable').forEach(t => {
+            t.classList.remove('asc', 'desc');
+            if (t.getAttribute('data-column') === colunaAtiva) {
+                t.classList.add(ascAtivo ? 'asc' : 'desc');
+            }
+        });
+    }
 }
 
 function mudarTela(nomeTela) {
@@ -261,11 +398,13 @@ function mudarTela(nomeTela) {
     document.getElementById('telaPainelComprador').style.display = (nomeTela === 'painel-comprador') ? 'block' : 'none';
 
     if (nomeTela === 'geral') {
+        sincronizarSetasOrdenacaoVisuais();
         renderizarTabelaGeral();
     } else if (nomeTela === 'painel-comprador') {
         const tituloPainel = document.getElementById('tituloPainelComprador');
         if (tituloPainel) tituloPainel.innerText = `Painel: ${estado.compradorLogado} — Grupo: ${estado.empresaCompradorAtual}`;
         limparFormularioComprador();
+        sincronizarSetasOrdenacaoVisuais();
         renderizarTabelaComprador();
     }
 }
@@ -283,25 +422,48 @@ function renderizarTabelaGenerica(containerId, dados, options = { showActions: f
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    if (dados.length === 0) {
+    let configOrdenacao = estado.telaAtual === 'geral' ? obterEstadoAgendaAtual().ordenacao : obterEstadoCompradorAtual().ordenacao;
+    const { coluna, asc } = configOrdenacao;
+
+    const dadosOrdenados = [...dados].sort((a, b) => {
+        let valorA = a[coluna];
+        let valorB = b[coluna];
+
+        if (coluna === 'data') {
+            valorA = a.data ? new Date(a.data).getTime() : 0;
+            valorB = b.data ? new Date(b.data).getTime() : 0;
+        } else if (coluna === 'previsao') {
+            valorA = parseInt(a.previsao) || 0;
+            valorB = parseInt(b.previsao) || 0;
+        } else {
+            valorA = (valorA || '').toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            valorB = (valorB || '').toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        }
+
+        if (valorA < valorB) return asc ? -1 : 1;
+        if (valorA > valorB) return asc ? 1 : -1;
+        return 0;
+    });
+
+    if (dadosOrdenados.length === 0) {
         const tr = document.createElement('tr');
-        // Total de colunas: 7 sem ações ou 8 com ações
         const colSpanCount = options.showActions ? 8 : 7;
         tr.innerHTML = `<td colspan="${colSpanCount}" style="text-align: center; color: var(--text-light);">Nenhum registro encontrado.</td>`;
         tbody.appendChild(tr);
         return;
     }
 
-    dados.forEach(item => {
+    const fragment = document.createDocumentFragment();
+    dadosOrdenados.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${formatarData(item.data)}</td>
             <td><strong>${item.classificacao || 'GERAL'}</strong></td>
             <td>${item.categoria || ''}</td>
-            <td>${item.fornecedor}</td>
+            <td>${item.fornecedor || ''}</td>
             <td>${item.acaoComprador || ''}</td>
-            <td>${item.previsao}</td>
-            <td><span class="flag ${obterClasseStatus(item.status)}">${item.status}</span></td>
+            <td>${item.previsao || ''}</td>
+            <td><span class="flag ${obterClasseStatus(item.status)}">${item.status || ''}</span></td>
             ${options.showActions ? `
                 <td>
                     <button class="btn-action btn-edit" data-id="${item.id}">Editar</button>
@@ -309,28 +471,32 @@ function renderizarTabelaGenerica(containerId, dados, options = { showActions: f
                 </td>
             ` : ''}
         `;
-        tbody.appendChild(tr);
+        fragment.appendChild(tr);
     });
+    tbody.appendChild(fragment);
 }
 
 function renderizarTabelaGeral() {
+    const agendaAtual = obterEstadoAgendaAtual();
     const filtrados = estado.agendamentos.filter(item => {
         const matchEmpresa = item.empresa === estado.empresaAtual;
         const matchClassificacao = estado.classificacaoFiltroAtual ? item.classificacao === estado.classificacaoFiltroAtual : true;
-        return matchEmpresa && matchClassificacao;
+        const matchStatus = agendaAtual.statusFiltro ? item.status === agendaAtual.statusFiltro : true;
+        return matchEmpresa && matchClassificacao && matchStatus;
     });
 
-    // Visão Geral como espelho puro (sem botões de Editar/Excluir)
     renderizarTabelaGenerica('tabelaCorpo', filtrados, { showActions: false });
 }
 
 function renderizarTabelaComprador() {
-    const filtrados = estado.agendamentos.filter(item => 
-        item.empresa === estado.empresaCompradorAtual && 
-        item.comprador === estado.compradorLogado
-    );
+    const compradorAtual = obterEstadoCompradorAtual();
+    const filtrados = estado.agendamentos.filter(item => {
+        const matchEmpresaComprador = item.empresa === estado.empresaCompradorAtual;
+        const matchCompradorLogado = item.comprador === estado.compradorLogado;
+        const matchStatus = compradorAtual.statusFiltro ? item.status === compradorAtual.statusFiltro : true;
+        return matchEmpresaComprador && matchCompradorLogado && matchStatus;
+    });
 
-    // Painel do Comprador individual (apenas os registros do comprador logado)
     renderizarTabelaGenerica('tabelaCorpoComprador', filtrados, { showActions: true });
 }
 
@@ -346,8 +512,6 @@ function formatarData(dataIso) {
     if (partes.length !== 3) return dataIso;
     return `${partes[2]}/${partes[1]}/${partes[0]}`;
 }
-
-// ================= OPERAÇÕES DO COMPRADOR (FIREBASE) =================
 
 async function salvarAgendamentoComprador() {
     const data = document.getElementById('inputDataComprador').value;
@@ -429,11 +593,31 @@ function limparFormularioComprador() {
 }
 
 function exportarExcel() {
-    const filtrados = estado.agendamentos.filter(item => {
-        const matchEmpresa = item.empresa === estado.empresaAtual;
-        const matchClassificacao = estado.classificacaoFiltroAtual ? item.classificacao === estado.classificacaoFiltroAtual : true;
-        return matchEmpresa && matchClassificacao;
-    });
+    let filtrados = [];
+    let nomeArquivo = "";
+
+    if (estado.telaAtual === 'geral') {
+        const agendaAtual = obterEstadoAgendaAtual();
+        filtrados = estado.agendamentos.filter(item => {
+            const matchEmpresa = item.empresa === estado.empresaAtual;
+            const matchClassificacao = estado.classificacaoFiltroAtual ? item.classificacao === estado.classificacaoFiltroAtual : true;
+            const matchStatus = agendaAtual.statusFiltro ? item.status === agendaAtual.statusFiltro : true;
+            return matchEmpresa && matchClassificacao && matchStatus;
+        });
+
+        nomeArquivo = `Agenda_${estado.empresaAtual.replace(/[^a-zA-Z0-9]/g, '_')}_${estado.classificacaoFiltroAtual || 'GERAL'}.csv`;
+
+    } else if (estado.telaAtual === 'painel-comprador') {
+        const compradorAtual = obterEstadoCompradorAtual();
+        filtrados = estado.agendamentos.filter(item => {
+            const matchEmpresaComprador = item.empresa === estado.empresaCompradorAtual;
+            const matchCompradorLogado = item.comprador === estado.compradorLogado;
+            const matchStatus = compradorAtual.statusFiltro ? item.status === compradorAtual.statusFiltro : true;
+            return matchEmpresaComprador && matchCompradorLogado && matchStatus;
+        });
+
+        nomeArquivo = `Painel_${estado.compradorLogado}_${estado.empresaCompradorAtual.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+    }
 
     if (filtrados.length === 0) {
         alert("Não há dados para exportar nesta visualização.");
@@ -454,12 +638,11 @@ function exportarExcel() {
         csv += `${data};${classificacao};${categoria};${fornecedor};${acaoComprador};${previsao};${status}\n`;
     });
 
-    // Alterado para extensão .csv e MIME type correto
     const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Agenda_${estado.empresaAtual.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+    a.download = nomeArquivo;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
