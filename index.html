@@ -5,10 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda de Compras - Ultra Assessoria</title>
     <link rel="stylesheet" href="./assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.21/locales/pt-br.global.min.js"></script>
 </head>
 <body>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- MODAL DE LOGIN DO COMPRADOR -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-modal">
+            <h3 id="loginModalTitulo">Entrar</h3>
+            <p class="login-modal-sub">Digite sua senha para acessar o painel de lançamentos.</p>
+            <input type="password" id="inputSenhaComprador" placeholder="Senha" autocomplete="current-password">
+            <p class="login-modal-erro" id="loginModalErro" style="display: none;"></p>
+            <div class="login-modal-acoes">
+                <button type="button" class="btn-secondary" id="btnCancelarLogin">Cancelar</button>
+                <button type="button" class="btn-add" id="btnConfirmarLogin">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE DETALHE DO EVENTO (calendário) -->
+    <div class="detalhe-overlay" id="detalheEventoOverlay">
+        <div class="detalhe-modal">
+            <div class="detalhe-modal-header">
+                <span class="detalhe-modal-status" id="detalheStatusBadge"></span>
+                <button type="button" class="detalhe-modal-fechar" id="btnFecharDetalhe" aria-label="Fechar">✕</button>
+            </div>
+            <h3 id="detalheTitulo"></h3>
+            <dl class="detalhe-lista" id="detalheLista"></dl>
+            <div class="detalhe-modal-acoes" id="detalheAcoes">
+                <button type="button" class="btn-action btn-delete" id="btnExcluirDoDetalhe">🗑️ Excluir</button>
+                <button type="button" class="btn-add" id="btnEditarDoDetalhe">✏️ Editar</button>
+            </div>
+        </div>
+    </div>
 
     <div class="app-container" id="appContainer">
         <!-- BARRA LATERAL -->
@@ -70,6 +102,10 @@
                     </div>
                     
                     <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="view-toggle" role="group" aria-label="Alternar entre tabela e calendário">
+                            <button type="button" class="view-toggle-btn active" id="btnVisTabelaGeral">Tabela</button>
+                            <button type="button" class="view-toggle-btn" id="btnVisCalendarioGeral">Calendário</button>
+                        </div>
                         <!-- Botão Limpar Filtros Geral Estático -->
                         <button id="btnLimparFiltrosGeral" class="btn-secondary" style="padding: 10px 16px; font-size: 14px; cursor: pointer; background-color: #64748b; color: white; border: none; border-radius: 6px; font-weight: 500;">
                             🧹 Limpar Filtros
@@ -78,7 +114,7 @@
                     </div>
                 </div>
 
-                <div class="table-container">
+                <div class="table-container" id="containerTabelaGeral">
                     <table>
                         <thead>
                             <tr>
@@ -94,6 +130,10 @@
                         </thead>
                         <tbody id="tabelaCorpo"></tbody>
                     </table>
+                </div>
+
+                <div class="calendario-container" id="containerCalendarioGeral" style="display: none;">
+                    <div id="calendarioGeral"></div>
                 </div>
             </section>
 
@@ -168,6 +208,10 @@
 
                     <!-- Botões alinhados no topo à direita, igual à Tela Geral -->
                     <div class="acoes-topo-tabela" style="display: flex; align-items: center; gap: 10px;">
+                        <div class="view-toggle" role="group" aria-label="Alternar entre tabela e calendário">
+                            <button type="button" class="view-toggle-btn active" id="btnVisTabelaComprador">Tabela</button>
+                            <button type="button" class="view-toggle-btn" id="btnVisCalendarioComprador">Calendário</button>
+                        </div>
                         <button id="btnLimparFiltrosComprador" class="btn-secondary" style="padding: 10px 16px; font-size: 14px; cursor: pointer; background-color: #64748b; color: white; border: none; border-radius: 6px; font-weight: 500;">
                             🧹 Limpar Filtros
                         </button>
@@ -233,11 +277,27 @@
                         </select>
                     </div>
 
+                    <div class="form-group" id="grupoRecorrencia">
+                        <label>Repetição</label>
+                        <div class="recorrencia-controles">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="inputRecorrenteComprador">
+                                🔁 Repetir mensalmente
+                            </label>
+                            <select id="inputHorizonteRecorrenciaComprador" disabled>
+                                <option value="3">3 meses</option>
+                                <option value="6">6 meses</option>
+                                <option value="12" selected>12 meses</option>
+                                <option value="24">24 meses</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <button class="btn-add" id="btnSalvarAgendamentoComprador">Salvar Registro</button>
                 </div>
 
                 <!-- Tabela da Agenda do Comprador -->
-                <div class="table-container" style="margin-top: 20px;">
+                <div class="table-container" id="containerTabelaComprador" style="margin-top: 20px;">
                     <table>
                         <thead>
                             <tr>
@@ -253,6 +313,10 @@
                         </thead>
                         <tbody id="tabelaCorpoComprador"></tbody>
                     </table>
+                </div>
+
+                <div class="calendario-container" id="containerCalendarioComprador" style="display: none; margin-top: 20px;">
+                    <div id="calendarioComprador"></div>
                 </div>
             </section>
 

@@ -462,6 +462,47 @@ ABAS E FORMULÁRIOS
     box-shadow: 0 0 0 3px rgba(74, 51, 32, 0.1); 
 }
 
+.recorrencia-controles {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 38px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-main);
+    text-transform: none;
+    letter-spacing: normal;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+#inputHorizonteRecorrenciaComprador {
+    padding: 9px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 13px;
+    background-color: #fcfcfc;
+    color: var(--text-main);
+}
+
+#inputHorizonteRecorrenciaComprador:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* ==========================================
 TABELAS
    ========================================== */
@@ -722,6 +763,252 @@ BOTÕES (Padronizados com altura e peso visual corretos)
 }
 
 /* ==========================================
+MODAL DE LOGIN (ÁREA DO COMPRADOR)
+   ========================================== */
+.login-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login-overlay.show {
+    display: flex;
+}
+
+.login-modal {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 26px;
+    width: 100%;
+    max-width: 320px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.login-modal h3 {
+    font-size: 17px;
+    color: #2c3e50;
+    margin-bottom: 6px;
+}
+
+.login-modal-sub {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 16px;
+}
+
+.login-modal input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 13px;
+    background-color: #fcfcfc;
+    color: var(--text-main);
+    transition: all 0.2s;
+}
+
+.login-modal input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    background-color: var(--white);
+    box-shadow: 0 0 0 3px rgba(74, 51, 32, 0.1);
+}
+
+.login-modal-erro {
+    color: var(--status-danger);
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.login-modal-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+/* ==========================================
+MODAL DE DETALHE DO EVENTO (CALENDÁRIO)
+   ========================================== */
+.detalhe-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.detalhe-overlay.show {
+    display: flex;
+}
+
+.detalhe-modal {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 24px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.detalhe-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.detalhe-modal-fechar {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: var(--text-light);
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px;
+}
+
+.detalhe-modal-fechar:hover {
+    color: var(--text-main);
+}
+
+.detalhe-modal-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--white);
+    letter-spacing: 0.5px;
+}
+
+.detalhe-modal-status.agendado { background-color: var(--status-agendado); }
+.detalhe-modal-status.executado { background-color: var(--status-executado); }
+.detalhe-modal-status.parcial { background-color: var(--status-parcial); }
+
+.detalhe-modal h3 {
+    font-size: 17px;
+    color: #2c3e50;
+    margin-bottom: 16px;
+}
+
+.detalhe-lista {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px 14px;
+    margin-bottom: 20px;
+}
+
+.detalhe-lista dt {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-light);
+    white-space: nowrap;
+}
+
+.detalhe-lista dd {
+    font-size: 13px;
+    color: var(--text-main);
+}
+
+.detalhe-modal-acoes {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* ==========================================
+SELETOR TABELA / CALENDÁRIO
+   ========================================== */
+.view-toggle {
+    display: inline-flex;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.view-toggle-btn {
+    height: 40px;
+    padding: 0 16px;
+    border: none;
+    background: var(--white);
+    color: var(--text-main);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.view-toggle-btn + .view-toggle-btn {
+    border-left: 1px solid var(--border-color);
+}
+
+.view-toggle-btn:hover:not(.active) {
+    background: #f4f1ee;
+}
+
+.view-toggle-btn.active {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+/* ==========================================
+CALENDÁRIO (FULLCALENDAR)
+   ========================================== */
+.calendario-container {
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    padding: 20px;
+    min-height: 420px;
+}
+
+#containerCalendarioGeral,
+#containerCalendarioComprador {
+    /* Reaproveita a paleta da marca dentro das variáveis de tema do FullCalendar v6 */
+    --fc-border-color: var(--border-color);
+    --fc-neutral-bg-color: #f8f9fa;
+    --fc-page-bg-color: var(--white);
+    --fc-today-bg-color: rgba(241, 196, 15, 0.12);
+    --fc-button-bg-color: var(--primary-color);
+    --fc-button-border-color: var(--primary-color);
+    --fc-button-hover-bg-color: var(--primary-hover);
+    --fc-button-hover-border-color: var(--primary-hover);
+    --fc-button-active-bg-color: var(--secondary-color);
+    --fc-button-active-border-color: var(--secondary-color);
+}
+
+#containerCalendarioGeral .fc-button,
+#containerCalendarioComprador .fc-button {
+    text-transform: capitalize;
+    box-shadow: none !important;
+}
+
+#containerCalendarioGeral .fc-event,
+#containerCalendarioComprador .fc-event {
+    cursor: pointer;
+    font-size: 12px;
+    padding: 1px 4px;
+    border: none;
+}
+
+#containerCalendarioComprador .fc-daygrid-day:hover {
+    background: #faf8f6;
+    cursor: pointer;
+}
+
+/* ==========================================
 RESPONSIVIDADE
    ========================================== */
 @media (max-width: 992px) {
@@ -751,6 +1038,7 @@ RESPONSIVIDADE
     .content-header > div:last-child {
         width: 100%;
         justify-content: stretch;
+        flex-wrap: wrap;
     }
     .content-header .btn-limpar-filtros,
     .content-header .btn-export,
