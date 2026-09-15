@@ -3,6 +3,7 @@
 // JavaScript principal
 // ============================================================
 
+
 // ============================================================
 // CONFIGURAÇÕES
 // ============================================================
@@ -16,76 +17,107 @@ const CONFIG = {
 // DADOS TEMPORÁRIOS
 // ============================================================
 // Estes dados serão substituídos pelo Firebase posteriormente.
-// A estrutura já está preparada para isso.
 
 let rotinas = [
+
     {
         id: "curva-d",
+
         descricao: "Curva D",
-        distribuicao: "Segunda-feira",
+
         dia: "segunda",
+
         periodo: "Mês Atual × Anterior",
+
         prioridade: "alta",
+
         status: "feito",
+
         procedimento: [
             "Exportar relatório do BI",
             "Comparar com o mês anterior",
             "Verificar aumento por classificação",
             "Enviar resumo para a gestão"
         ],
-        observacoes: "Conferir as classificações com maior aumento."
+
+        observacoes:
+            "Conferir as classificações com maior aumento."
     },
+
 
     {
         id: "transferencias",
+
         descricao: "Transferências",
-        distribuicao: "Segunda e Quinta",
-        dia: "segunda",
+
+        dia: "quinta",
+
         periodo: "Mês Atual",
+
         prioridade: "media",
+
         status: "pendente",
+
         procedimento: [
             "Verificar transferências pendentes",
             "Conferir origem e destino",
             "Validar divergências",
             "Atualizar o controle"
         ],
+
         observacoes: ""
     },
 
+
     {
         id: "custo-medio",
-        descricao: "Custo Médio por Classificação",
-        distribuicao: "Terça-feira",
+
+        descricao:
+            "Custo Médio por Classificação",
+
         dia: "terca",
-        periodo: "90 dias × Mês Atual",
+
+        periodo:
+            "90 dias × Mês Atual",
+
         prioridade: "alta",
+
         status: "pendente",
+
         procedimento: [
             "Atualizar relatório",
             "Filtrar período de 90 dias",
             "Comparar com o mês atual",
             "Verificar divergências relevantes"
         ],
+
         observacoes: ""
     },
 
+
     {
         id: "revisoes",
+
         descricao: "Revisões",
-        distribuicao: "Sexta-feira",
+
         dia: "sexta",
+
         periodo: "Semana Atual",
+
         prioridade: "baixa",
+
         status: "pendente",
+
         procedimento: [
             "Revisar demandas da semana",
             "Conferir pendências",
             "Atualizar os registros",
             "Preparar fechamento semanal"
         ],
+
         observacoes: ""
     }
+
 ];
 
 
@@ -93,36 +125,68 @@ let rotinas = [
 // ELEMENTOS PRINCIPAIS
 // ============================================================
 
-const loginScreen = document.getElementById("loginScreen");
-const appScreen = document.getElementById("appScreen");
+const loginScreen =
+    document.getElementById("loginScreen");
 
-const loginForm = document.getElementById("loginForm");
-const loginPassword = document.getElementById("loginPassword");
-const loginError = document.getElementById("loginError");
+const appScreen =
+    document.getElementById("appScreen");
 
-const pageTitle = document.getElementById("pageTitle");
+const loginForm =
+    document.getElementById("loginForm");
 
-const todayWeekday = document.getElementById("todayWeekday");
-const currentDate = document.getElementById("currentDate");
+const loginPassword =
+    document.getElementById("loginPassword");
 
-const todayDemands = document.getElementById("todayDemands");
+const loginError =
+    document.getElementById("loginError");
 
-const todayTotal = document.getElementById("todayTotal");
-const todayCompleted = document.getElementById("todayCompleted");
-const todayPending = document.getElementById("todayPending");
+const pageTitle =
+    document.getElementById("pageTitle");
 
-const weekCompleted = document.getElementById("weekCompleted");
-const weekTotal = document.getElementById("weekTotal");
-const weekProgressPercent = document.getElementById("weekProgressPercent");
-const weekProgressFill = document.getElementById("weekProgressFill");
+const todayWeekday =
+    document.getElementById("todayWeekday");
 
-const weeklyBoard = document.getElementById("weeklyBoard");
+const currentDate =
+    document.getElementById("currentDate");
 
-const demandModal = document.getElementById("demandModal");
-const routineModal = document.getElementById("routineModal");
-const confirmModal = document.getElementById("confirmModal");
+const todayDemands =
+    document.getElementById("todayDemands");
 
-const routineForm = document.getElementById("routineForm");
+const todayTotal =
+    document.getElementById("todayTotal");
+
+const todayCompleted =
+    document.getElementById("todayCompleted");
+
+const todayPending =
+    document.getElementById("todayPending");
+
+const weekCompleted =
+    document.getElementById("weekCompleted");
+
+const weekTotal =
+    document.getElementById("weekTotal");
+
+const weekProgressPercent =
+    document.getElementById("weekProgressPercent");
+
+const weekProgressFill =
+    document.getElementById("weekProgressFill");
+
+const weeklyBoard =
+    document.getElementById("weeklyBoard");
+
+const demandModal =
+    document.getElementById("demandModal");
+
+const routineModal =
+    document.getElementById("routineModal");
+
+const confirmModal =
+    document.getElementById("confirmModal");
+
+const routineForm =
+    document.getElementById("routineForm");
 
 
 // ============================================================
@@ -130,25 +194,38 @@ const routineForm = document.getElementById("routineForm");
 // ============================================================
 
 let rotinaSelecionada = null;
+
 let acaoConfirmacao = null;
+
+let modoEdicao = false;
 
 
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-    configurarDataAtual();
-    configurarLogin();
-    configurarNavegacao();
-    configurarModais();
-    configurarFormularioRotina();
-    configurarBotoesStatus();
-    configurarCards();
-    verificarSessao();
+        configurarDataAtual();
 
-});
+        configurarLogin();
+
+        configurarNavegacao();
+
+        configurarModais();
+
+        configurarFormularioRotina();
+
+        configurarBotoesRotina();
+
+        configurarBotoesNovaRotina();
+
+        verificarSessao();
+
+    }
+);
 
 
 // ============================================================
@@ -159,48 +236,74 @@ function configurarLogin() {
 
     if (!loginForm) return;
 
-    loginForm.addEventListener("submit", (event) => {
 
-        event.preventDefault();
+    loginForm.addEventListener(
+        "submit",
+        (event) => {
 
-        const senha = loginPassword.value.trim();
+            event.preventDefault();
 
-        if (senha === CONFIG.senhaAdmin) {
 
-            sessionStorage.setItem("agendaComprasAuth", "true");
+            const senha =
+                loginPassword.value.trim();
 
-            loginError.textContent = "";
 
-            abrirSistema();
+            if (senha === CONFIG.senhaAdmin) {
 
-        } else {
+                sessionStorage.setItem(
+                    "agendaComprasAuth",
+                    "true"
+                );
 
-            loginError.textContent = "Senha incorreta.";
 
-            loginPassword.value = "";
+                loginError.textContent = "";
 
-            loginPassword.focus();
+
+                abrirSistema();
+
+            }
+
+            else {
+
+                loginError.textContent =
+                    "Senha incorreta.";
+
+
+                loginPassword.value = "";
+
+
+                loginPassword.focus();
+
+            }
 
         }
-
-    });
+    );
 
 }
 
 
 // ============================================================
-// VERIFICA SESSÃO
+// VERIFICAR SESSÃO
 // ============================================================
 
 function verificarSessao() {
 
     const autenticado =
-        sessionStorage.getItem("agendaComprasAuth") === "true";
+        sessionStorage.getItem(
+            "agendaComprasAuth"
+        ) === "true";
+
 
     if (autenticado) {
+
         abrirSistema();
-    } else {
+
+    }
+
+    else {
+
         mostrarLogin();
+
     }
 
 }
@@ -213,12 +316,22 @@ function verificarSessao() {
 function abrirSistema() {
 
     if (loginScreen) {
-        loginScreen.classList.add("hidden");
+
+        loginScreen.classList.add(
+            "hidden"
+        );
+
     }
 
+
     if (appScreen) {
-        appScreen.classList.remove("hidden");
+
+        appScreen.classList.remove(
+            "hidden"
+        );
+
     }
+
 
     atualizarInterface();
 
@@ -232,11 +345,20 @@ function abrirSistema() {
 function mostrarLogin() {
 
     if (appScreen) {
-        appScreen.classList.add("hidden");
+
+        appScreen.classList.add(
+            "hidden"
+        );
+
     }
 
+
     if (loginScreen) {
-        loginScreen.classList.remove("hidden");
+
+        loginScreen.classList.remove(
+            "hidden"
+        );
+
     }
 
 }
@@ -248,14 +370,28 @@ function mostrarLogin() {
 
 function fazerLogout() {
 
-    sessionStorage.removeItem("agendaComprasAuth");
+    sessionStorage.removeItem(
+        "agendaComprasAuth"
+    );
+
 
     fecharTodosModais();
 
+
+    rotinaSelecionada = null;
+
+    modoEdicao = false;
+
+    acaoConfirmacao = null;
+
+
     mostrarLogin();
 
+
     if (loginForm) {
+
         loginForm.reset();
+
     }
 
 }
@@ -267,161 +403,268 @@ function fazerLogout() {
 
 function configurarNavegacao() {
 
-    const botoesMenu = document.querySelectorAll(".nav-item[data-page]");
-
-    botoesMenu.forEach((botao) => {
-
-        botao.addEventListener("click", () => {
-
-            const pagina = botao.dataset.page;
-
-            abrirPagina(pagina);
-
-        });
-
-    });
+    const botoesMenu =
+        document.querySelectorAll(
+            ".nav-item[data-page]"
+        );
 
 
-    const botaoLogout = document.getElementById("btnLogout");
+    botoesMenu.forEach(
+        (botao) => {
+
+            botao.addEventListener(
+                "click",
+                () => {
+
+                    const pagina =
+                        botao.dataset.page;
+
+
+                    abrirPagina(pagina);
+
+                }
+            );
+
+        }
+    );
+
+
+    const botaoLogout =
+        document.getElementById(
+            "btnLogout"
+        );
+
 
     if (botaoLogout) {
 
-        botaoLogout.addEventListener("click", fazerLogout);
+        botaoLogout.addEventListener(
+            "click",
+            fazerLogout
+        );
 
     }
 
 
     const botaoMenuMobile =
-        document.getElementById("btnMobileMenu");
+        document.getElementById(
+            "btnMobileMenu"
+        );
+
 
     if (botaoMenuMobile) {
 
-        botaoMenuMobile.addEventListener("click", () => {
+        botaoMenuMobile.addEventListener(
+            "click",
+            () => {
 
-            const sidebar = document.getElementById("sidebar");
+                const sidebar =
+                    document.getElementById(
+                        "sidebar"
+                    );
 
-            if (sidebar) {
-                sidebar.classList.toggle("open");
+
+                if (sidebar) {
+
+                    sidebar.classList.toggle(
+                        "open"
+                    );
+
+                }
+
             }
-
-        });
+        );
 
     }
 
 }
 
 
+// ============================================================
+// ABRIR PÁGINA
+// ============================================================
+
 function abrirPagina(pagina) {
 
     const paginas =
-        document.querySelectorAll("[data-page-content]");
-
-    const botoes =
-        document.querySelectorAll(".nav-item[data-page]");
-
-
-    paginas.forEach((elemento) => {
-
-        const pertence = elemento.dataset.pageContent === pagina;
-
-        elemento.classList.toggle("hidden", !pertence);
-        elemento.classList.toggle("active", pertence);
-
-    });
-
-
-    botoes.forEach((botao) => {
-
-        botao.classList.toggle(
-            "active",
-            botao.dataset.page === pagina
+        document.querySelectorAll(
+            "[data-page-content]"
         );
 
-    });
+
+    const botoes =
+        document.querySelectorAll(
+            ".nav-item[data-page]"
+        );
+
+
+    paginas.forEach(
+        (elemento) => {
+
+            const pertence =
+                elemento.dataset.pageContent ===
+                pagina;
+
+
+            elemento.classList.toggle(
+                "hidden",
+                !pertence
+            );
+
+
+            elemento.classList.toggle(
+                "active",
+                pertence
+            );
+
+        }
+    );
+
+
+    botoes.forEach(
+        (botao) => {
+
+            botao.classList.toggle(
+                "active",
+                botao.dataset.page === pagina
+            );
+
+        }
+    );
 
 
     const titulos = {
+
         inicio: "Início",
+
         semana: "Semana",
+
         procedimentos: "Procedimentos"
+
     };
 
+
     if (pageTitle) {
+
         pageTitle.textContent =
-            titulos[pagina] || "Agenda Compras";
+            titulos[pagina] ||
+            "Agenda Compras";
+
     }
 
 
     atualizarInterface();
 
 
-    // Fecha o menu mobile depois de navegar
-    const sidebar = document.getElementById("sidebar");
+    const sidebar =
+        document.getElementById(
+            "sidebar"
+        );
+
 
     if (sidebar) {
-        sidebar.classList.remove("open");
+
+        sidebar.classList.remove(
+            "open"
+        );
+
     }
 
 }
 
 
 // ============================================================
-// DATA E DIA DA SEMANA
+// DATA ATUAL
 // ============================================================
 
 function obterDiaAtual() {
 
-    const hoje = new Date();
+    const hoje =
+        new Date();
+
 
     const dias = [
+
         "domingo",
+
         "segunda",
+
         "terca",
+
         "quarta",
+
         "quinta",
+
         "sexta",
+
         "sabado"
+
     ];
 
-    return dias[hoje.getDay()];
+
+    return dias[
+        hoje.getDay()
+    ];
 
 }
 
 
 function obterNomeDiaAtual() {
 
-    const hoje = new Date();
+    const hoje =
+        new Date();
+
 
     const dias = [
+
         "Domingo",
+
         "Segunda-feira",
+
         "Terça-feira",
+
         "Quarta-feira",
+
         "Quinta-feira",
+
         "Sexta-feira",
+
         "Sábado"
+
     ];
 
-    return dias[hoje.getDay()];
+
+    return dias[
+        hoje.getDay()
+    ];
 
 }
 
 
 function configurarDataAtual() {
 
-    const hoje = new Date();
+    const hoje =
+        new Date();
 
-    const nomeDia = obterNomeDiaAtual();
+
+    const nomeDia =
+        obterNomeDiaAtual();
+
 
     const dataFormatada =
-        hoje.toLocaleDateString("pt-BR", {
-            day: "2-digit",
-            month: "long"
-        });
+        hoje.toLocaleDateString(
+            "pt-BR",
+            {
+                day: "2-digit",
+                month: "long"
+            }
+        );
 
 
     if (todayWeekday) {
-        todayWeekday.textContent = nomeDia;
+
+        todayWeekday.textContent =
+            nomeDia;
+
     }
 
 
@@ -441,45 +684,33 @@ function configurarDataAtual() {
 
 function obterDemandasDoDia() {
 
-    const diaAtual = obterDiaAtual();
+    const diaAtual =
+        obterDiaAtual();
 
-    return rotinas.filter((rotina) => {
 
-        if (rotina.dia === diaAtual) {
-            return true;
+    return rotinas.filter(
+        (rotina) => {
+
+            return rotina.dia === diaAtual;
+
         }
-
-        // Rotinas segunda e quinta
-        if (
-            rotina.distribuicao === "Segunda e Quinta" &&
-            (diaAtual === "segunda" || diaAtual === "quinta")
-        ) {
-            return true;
-        }
-
-        // Rotinas diárias
-        if (
-            rotina.distribuicao === "Diariamente"
-        ) {
-            return true;
-        }
-
-        return false;
-
-    });
+    );
 
 }
 
 
 // ============================================================
-// RENDERIZA DEMANDAS DE HOJE
+// RENDERIZAR DEMANDAS DO DIA
 // ============================================================
 
 function renderizarDemandasDoDia() {
 
     if (!todayDemands) return;
 
-    const demandas = obterDemandasDoDia();
+
+    const demandas =
+        obterDemandasDoDia();
+
 
     todayDemands.innerHTML = "";
 
@@ -487,47 +718,67 @@ function renderizarDemandasDoDia() {
     if (demandas.length === 0) {
 
         todayDemands.innerHTML = `
-            <div class="empty-state-card">
-                <div class="empty-icon">✓</div>
 
-                <h3>Nenhuma demanda para hoje</h3>
+            <div class="empty-state-card">
+
+                <div class="empty-icon">
+                    ✓
+                </div>
+
+                <h3>
+                    Nenhuma demanda para hoje
+                </h3>
 
                 <p>
                     Não há rotinas programadas para este dia.
                 </p>
+
             </div>
+
         `;
 
-    } else {
+    }
 
-        demandas.forEach((rotina) => {
+    else {
 
-            todayDemands.appendChild(
-                criarCardDemanda(rotina)
-            );
+        demandas.forEach(
+            (rotina) => {
 
-        });
+                todayDemands.appendChild(
+                    criarCardDemanda(rotina)
+                );
+
+            }
+        );
 
     }
 
 
-    atualizarIndicadoresHoje(demandas);
+    atualizarIndicadoresHoje(
+        demandas
+    );
 
 }
 
 
 // ============================================================
-// CRIA CARD DA DEMANDA
+// CRIAR CARD DA DEMANDA
 // ============================================================
 
 function criarCardDemanda(rotina) {
 
-    const card = document.createElement("article");
+    const card =
+        document.createElement(
+            "article"
+        );
+
 
     card.className =
         `demand-card ${rotina.status}`;
 
-    card.dataset.routineId = rotina.id;
+
+    card.dataset.routineId =
+        rotina.id;
 
 
     const statusTexto =
@@ -543,7 +794,9 @@ function criarCardDemanda(rotina) {
 
 
     const prioridadeTexto =
-        formatarPrioridade(rotina.prioridade);
+        formatarPrioridade(
+            rotina.prioridade
+        );
 
 
     card.innerHTML = `
@@ -564,11 +817,15 @@ function criarCardDemanda(rotina) {
         <div class="demand-card-body">
 
             <h3>
-                ${escapeHTML(rotina.descricao)}
+                ${escapeHTML(
+                    rotina.descricao
+                )}
             </h3>
 
             <p>
-                ${escapeHTML(rotina.periodo)}
+                ${escapeHTML(
+                    rotina.periodo
+                )}
             </p>
 
         </div>
@@ -576,7 +833,9 @@ function criarCardDemanda(rotina) {
 
         <div class="demand-card-footer">
 
-            <span class="priority-indicator ${rotina.prioridade}">
+            <span
+                class="priority-indicator ${rotina.prioridade}"
+            >
                 ${prioridadeTexto}
             </span>
 
@@ -589,11 +848,16 @@ function criarCardDemanda(rotina) {
     `;
 
 
-    card.addEventListener("click", () => {
+    card.addEventListener(
+        "click",
+        () => {
 
-        abrirDetalhesRotina(rotina.id);
+            abrirDetalhesRotina(
+                rotina.id
+            );
 
-    });
+        }
+    );
 
 
     return card;
@@ -605,28 +869,46 @@ function criarCardDemanda(rotina) {
 // INDICADORES DE HOJE
 // ============================================================
 
-function atualizarIndicadoresHoje(demandas) {
+function atualizarIndicadoresHoje(
+    demandas
+) {
 
-    const total = demandas.length;
+    const total =
+        demandas.length;
+
 
     const concluidas =
         demandas.filter(
-            (item) => item.status === "feito"
+            (item) =>
+                item.status === "feito"
         ).length;
 
-    const pendentes = total - concluidas;
+
+    const pendentes =
+        total - concluidas;
 
 
     if (todayTotal) {
-        todayTotal.textContent = total;
+
+        todayTotal.textContent =
+            total;
+
     }
+
 
     if (todayCompleted) {
-        todayCompleted.textContent = concluidas;
+
+        todayCompleted.textContent =
+            concluidas;
+
     }
 
+
     if (todayPending) {
-        todayPending.textContent = pendentes;
+
+        todayPending.textContent =
+            pendentes;
+
     }
 
 }
@@ -640,97 +922,91 @@ function renderizarSemana() {
 
     if (!weeklyBoard) return;
 
+
     const colunas =
-        weeklyBoard.querySelectorAll(".day-column");
+        weeklyBoard.querySelectorAll(
+            ".day-column"
+        );
 
 
-    const mapaDias = {
-        segunda: "segunda",
-        terca: "terca",
-        quarta: "quarta",
-        quinta: "quinta",
-        sexta: "sexta"
-    };
+    colunas.forEach(
+        (coluna) => {
+
+            const dia =
+                coluna.dataset.day;
 
 
-    colunas.forEach((coluna) => {
-
-        const dia = coluna.dataset.day;
-
-        if (!dia) return;
+            if (!dia) return;
 
 
-        const area =
-            coluna.querySelector(".day-demands");
-
-        const contador =
-            coluna.querySelector(".day-count");
-
-        if (!area) return;
+            const area =
+                coluna.querySelector(
+                    ".day-demands"
+                );
 
 
-        area.innerHTML = "";
+            const contador =
+                coluna.querySelector(
+                    ".day-count"
+                );
 
 
-        const demandas =
-            rotinas.filter((rotina) => {
+            if (!area) return;
 
-                if (rotina.dia === dia) {
-                    return true;
+
+            area.innerHTML = "";
+
+
+            const demandas =
+                rotinas.filter(
+                    (rotina) => {
+
+                        return rotina.dia === dia;
+
+                    }
+                );
+
+
+            if (contador) {
+
+                contador.textContent =
+                    demandas.length;
+
+            }
+
+
+            if (
+                demandas.length === 0
+            ) {
+
+                area.innerHTML = `
+
+                    <div class="empty-state">
+                        Nenhuma demanda
+                    </div>
+
+                `;
+
+
+                return;
+
+            }
+
+
+            demandas.forEach(
+                (rotina) => {
+
+                    area.appendChild(
+                        criarCardSemanal(
+                            rotina
+                        )
+                    );
+
                 }
+            );
 
-
-                if (
-                    rotina.distribuicao === "Segunda e Quinta" &&
-                    (
-                        dia === "segunda" ||
-                        dia === "quinta"
-                    )
-                ) {
-                    return true;
-                }
-
-
-                if (
-                    rotina.distribuicao === "Diariamente"
-                ) {
-                    return true;
-                }
-
-
-                return false;
-
-            });
-
-
-        if (contador) {
-            contador.textContent = demandas.length;
         }
-
-
-        if (demandas.length === 0) {
-
-            area.innerHTML = `
-                <div class="empty-state">
-                    Nenhuma demanda
-                </div>
-            `;
-
-            return;
-
-        }
-
-
-        demandas.forEach((rotina) => {
-
-            const card =
-                criarCardSemanal(rotina);
-
-            area.appendChild(card);
-
-        });
-
-    });
+    );
 
 
     destacarDiaAtual();
@@ -745,10 +1021,14 @@ function renderizarSemana() {
 function criarCardSemanal(rotina) {
 
     const card =
-        document.createElement("article");
+        document.createElement(
+            "article"
+        );
+
 
     card.className =
         `weekly-demand-card ${rotina.status}`;
+
 
     card.dataset.routineId =
         rotina.id;
@@ -764,27 +1044,38 @@ function criarCardSemanal(rotina) {
 
         <div class="weekly-card-top">
 
-            <span class="weekly-status-dot ${rotina.status}">
-            </span>
+            <span
+                class="weekly-status-dot ${rotina.status}"
+            ></span>
 
-            <span class="status-badge ${rotina.status}">
+            <span
+                class="status-badge ${rotina.status}"
+            >
                 ${statusTexto}
             </span>
 
         </div>
 
+
         <h3>
-            ${escapeHTML(rotina.descricao)}
+            ${escapeHTML(
+                rotina.descricao
+            )}
         </h3>
 
     `;
 
 
-    card.addEventListener("click", () => {
+    card.addEventListener(
+        "click",
+        () => {
 
-        abrirDetalhesRotina(rotina.id);
+            abrirDetalhesRotina(
+                rotina.id
+            );
 
-    });
+        }
+    );
 
 
     return card;
@@ -798,20 +1089,27 @@ function criarCardSemanal(rotina) {
 
 function destacarDiaAtual() {
 
-    const diaAtual = obterDiaAtual();
+    const diaAtual =
+        obterDiaAtual();
+
 
     const colunas =
-        document.querySelectorAll(".day-column");
-
-
-    colunas.forEach((coluna) => {
-
-        coluna.classList.toggle(
-            "current-day",
-            coluna.dataset.day === diaAtual
+        document.querySelectorAll(
+            ".day-column"
         );
 
-    });
+
+    colunas.forEach(
+        (coluna) => {
+
+            coluna.classList.toggle(
+                "current-day",
+                coluna.dataset.day ===
+                diaAtual
+            );
+
+        }
+    );
 
 }
 
@@ -825,9 +1123,11 @@ function atualizarProgressoSemana() {
     const total =
         rotinas.length;
 
+
     const concluidas =
         rotinas.filter(
-            (rotina) => rotina.status === "feito"
+            (rotina) =>
+                rotina.status === "feito"
         ).length;
 
 
@@ -845,18 +1145,26 @@ function atualizarProgressoSemana() {
 
 
     if (weekCompleted) {
-        weekCompleted.textContent = concluidas;
+
+        weekCompleted.textContent =
+            concluidas;
+
     }
 
 
     if (weekTotal) {
-        weekTotal.textContent = total;
+
+        weekTotal.textContent =
+            total;
+
     }
 
 
     if (weekProgressPercent) {
+
         weekProgressPercent.textContent =
             `${percentual}%`;
+
     }
 
 
@@ -878,51 +1186,84 @@ function abrirDetalhesRotina(id) {
 
     const rotina =
         rotinas.find(
-            (item) => item.id === id
+            (item) =>
+                item.id === id
         );
 
 
     if (!rotina) return;
 
 
-    rotinaSelecionada = rotina;
+    rotinaSelecionada =
+        rotina;
 
 
     const title =
-        document.getElementById("demandModalTitle");
+        document.getElementById(
+            "demandModalTitle"
+        );
+
 
     const subtitle =
-        document.getElementById("demandModalSubtitle");
+        document.getElementById(
+            "demandModalSubtitle"
+        );
+
 
     const description =
-        document.getElementById("detailDescription");
+        document.getElementById(
+            "detailDescription"
+        );
 
-    const distribution =
-        document.getElementById("detailDistribution");
+
+    const day =
+        document.getElementById(
+            "detailDay"
+        );
+
 
     const period =
-        document.getElementById("detailPeriod");
+        document.getElementById(
+            "detailPeriod"
+        );
+
 
     const priority =
-        document.getElementById("detailPriority");
+        document.getElementById(
+            "detailPriority"
+        );
+
+
+    const notes =
+        document.getElementById(
+            "detailNotes"
+        );
+
 
     const procedure =
-        document.getElementById("detailProcedure");
+        document.getElementById(
+            "detailProcedure"
+        );
+
 
     const toggleStatus =
-        document.getElementById("btnToggleStatus");
+        document.getElementById(
+            "btnToggleStatus"
+        );
 
 
     if (title) {
+
         title.textContent =
             rotina.descricao;
+
     }
 
 
     if (subtitle) {
 
         subtitle.textContent =
-            `${rotina.distribuicao} • ${rotina.periodo}`;
+            `${formatarDia(rotina.dia)} • ${rotina.periodo}`;
 
     }
 
@@ -935,10 +1276,12 @@ function abrirDetalhesRotina(id) {
     }
 
 
-    if (distribution) {
+    if (day) {
 
-        distribution.textContent =
-            rotina.distribuicao;
+        day.textContent =
+            formatarDia(
+                rotina.dia
+            );
 
     }
 
@@ -954,10 +1297,23 @@ function abrirDetalhesRotina(id) {
     if (priority) {
 
         priority.textContent =
-            formatarPrioridade(rotina.prioridade);
+            formatarPrioridade(
+                rotina.prioridade
+            );
+
 
         priority.className =
             `priority-badge ${rotina.prioridade}`;
+
+    }
+
+
+    if (notes) {
+
+        notes.textContent =
+            rotina.observacoes?.trim()
+                ? rotina.observacoes
+                : "Nenhuma observação cadastrada.";
 
     }
 
@@ -982,7 +1338,9 @@ function abrirDetalhesRotina(id) {
     }
 
 
-    abrirModal(demandModal);
+    abrirModal(
+        demandModal
+    );
 
 }
 
@@ -1008,94 +1366,460 @@ function renderizarProcedimento(
     ) {
 
         container.innerHTML = `
+
             <div class="procedure-empty">
                 Nenhum procedimento cadastrado.
             </div>
+
         `;
+
 
         return;
 
     }
 
 
-    procedimento.forEach((passo, index) => {
+    procedimento.forEach(
+        (passo, index) => {
 
-        const elemento =
-            document.createElement("div");
-
-        elemento.className =
-            "procedure-step";
-
-
-        const numero =
-            String(index + 1).padStart(2, "0");
+            const elemento =
+                document.createElement(
+                    "div"
+                );
 
 
-        elemento.innerHTML = `
-
-            <span class="step-number">
-                ${numero}
-            </span>
-
-            <span>
-                ${escapeHTML(passo)}
-            </span>
-
-        `;
+            elemento.className =
+                "procedure-step";
 
 
-        container.appendChild(elemento);
+            const numero =
+                String(
+                    index + 1
+                ).padStart(
+                    2,
+                    "0"
+                );
 
-    });
+
+            elemento.innerHTML = `
+
+                <span class="step-number">
+                    ${numero}
+                </span>
+
+                <span>
+                    ${escapeHTML(
+                        passo
+                    )}
+                </span>
+
+            `;
+
+
+            container.appendChild(
+                elemento
+            );
+
+        }
+    );
 
 }
 
 
 // ============================================================
-// BOTÕES DE STATUS
+// BOTÕES DA DEMANDA
 // ============================================================
 
-function configurarBotoesStatus() {
+function configurarBotoesRotina() {
 
-    const botao =
-        document.getElementById("btnToggleStatus");
-
-
-    if (!botao) return;
-
-
-    botao.addEventListener("click", () => {
-
-        if (!rotinaSelecionada) return;
-
-
-        const novoStatus =
-            rotinaSelecionada.status === "feito"
-                ? "pendente"
-                : "feito";
-
-
-        rotinaSelecionada.status =
-            novoStatus;
-
-
-        fecharModal(demandModal);
-
-        atualizarInterface();
-
-        mostrarToast(
-            novoStatus === "feito"
-                ? "Demanda concluída."
-                : "Demanda voltou para pendente."
+    const botaoStatus =
+        document.getElementById(
+            "btnToggleStatus"
         );
 
-    });
+
+    const botaoEditar =
+        document.getElementById(
+            "btnEditDemand"
+        );
+
+
+    const botaoExcluir =
+        document.getElementById(
+            "btnDeleteDemand"
+        );
+
+
+    // ========================================================
+    // STATUS
+    // ========================================================
+
+    if (botaoStatus) {
+
+        botaoStatus.addEventListener(
+            "click",
+            () => {
+
+                if (!rotinaSelecionada)
+                    return;
+
+
+                const novoStatus =
+                    rotinaSelecionada.status === "feito"
+                        ? "pendente"
+                        : "feito";
+
+
+                rotinaSelecionada.status =
+                    novoStatus;
+
+
+                fecharModal(
+                    demandModal
+                );
+
+
+                atualizarInterface();
+
+
+                mostrarToast(
+                    novoStatus === "feito"
+                        ? "Demanda concluída."
+                        : "Demanda voltou para pendente."
+                );
+
+            }
+        );
+
+    }
+
+
+    // ========================================================
+    // EDITAR
+    // ========================================================
+
+    if (botaoEditar) {
+
+        botaoEditar.addEventListener(
+            "click",
+            () => {
+
+                if (!rotinaSelecionada)
+                    return;
+
+
+                modoEdicao = true;
+
+
+                preencherFormularioEdicao(
+                    rotinaSelecionada
+                );
+
+
+                fecharModal(
+                    demandModal
+                );
+
+
+                abrirModal(
+                    routineModal
+                );
+
+            }
+        );
+
+    }
+
+
+    // ========================================================
+    // EXCLUIR
+    // ========================================================
+
+    if (botaoExcluir) {
+
+        botaoExcluir.addEventListener(
+            "click",
+            () => {
+
+                if (!rotinaSelecionada)
+                    return;
+
+
+                abrirConfirmacaoExclusao();
+
+            }
+        );
+
+    }
+
+
+    // ========================================================
+    // CONFIRMAR AÇÃO
+    // ========================================================
+
+    const botaoConfirmar =
+        document.getElementById(
+            "btnConfirmAction"
+        );
+
+
+    if (botaoConfirmar) {
+
+        botaoConfirmar.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    acaoConfirmacao ===
+                    "excluir"
+                ) {
+
+                    excluirRotina();
+
+                }
+
+            }
+        );
+
+    }
 
 }
 
 
 // ============================================================
-// FORMULÁRIO DE NOVA ROTINA
+// PREENCHER FORMULÁRIO DE EDIÇÃO
+// ============================================================
+
+function preencherFormularioEdicao(
+    rotina
+) {
+
+    if (
+        !routineForm ||
+        !rotina
+    ) return;
+
+
+    const description =
+        document.getElementById(
+            "routineDescription"
+        );
+
+
+    const day =
+        document.getElementById(
+            "routineDay"
+        );
+
+
+    const period =
+        document.getElementById(
+            "routinePeriod"
+        );
+
+
+    const procedure =
+        document.getElementById(
+            "routineProcedure"
+        );
+
+
+    const notes =
+        document.getElementById(
+            "routineNotes"
+        );
+
+
+    if (description) {
+
+        description.value =
+            rotina.descricao || "";
+
+    }
+
+
+    if (day) {
+
+        day.value =
+            rotina.dia || "";
+
+    }
+
+
+    if (period) {
+
+        period.value =
+            rotina.periodo || "";
+
+    }
+
+
+    const prioridade =
+        document.querySelector(
+            `input[name="priority"][value="${rotina.prioridade}"]`
+        );
+
+
+    if (prioridade) {
+
+        prioridade.checked =
+            true;
+
+    }
+
+
+    if (procedure) {
+
+        procedure.value =
+            Array.isArray(
+                rotina.procedimento
+            )
+                ? rotina.procedimento.join(
+                    "\n"
+                )
+                : "";
+
+    }
+
+
+    if (notes) {
+
+        notes.value =
+            rotina.observacoes || "";
+
+    }
+
+
+    const titulo =
+        document.getElementById(
+            "routineModalTitle"
+        );
+
+
+    if (titulo) {
+
+        titulo.textContent =
+            "Editar Rotina";
+
+    }
+
+
+    const botaoSalvar =
+        routineForm.querySelector(
+            'button[type="submit"]'
+        );
+
+
+    if (botaoSalvar) {
+
+        botaoSalvar.textContent =
+            "Salvar alterações";
+
+    }
+
+}
+
+
+// ============================================================
+// CONFIRMAR EXCLUSÃO
+// ============================================================
+
+function abrirConfirmacaoExclusao() {
+
+    if (!rotinaSelecionada)
+        return;
+
+
+    const mensagem =
+        document.getElementById(
+            "confirmMessage"
+        );
+
+
+    const botaoConfirmar =
+        document.getElementById(
+            "btnConfirmAction"
+        );
+
+
+    if (mensagem) {
+
+        mensagem.textContent =
+            `Deseja realmente excluir a demanda "${rotinaSelecionada.descricao}"?`;
+
+    }
+
+
+    acaoConfirmacao =
+        "excluir";
+
+
+    fecharModal(
+        demandModal
+    );
+
+
+    abrirModal(
+        confirmModal
+    );
+
+
+    if (botaoConfirmar) {
+
+        botaoConfirmar.textContent =
+            "Excluir demanda";
+
+    }
+
+}
+
+
+// ============================================================
+// EXCLUIR ROTINA
+// ============================================================
+
+function excluirRotina() {
+
+    if (!rotinaSelecionada)
+        return;
+
+
+    const id =
+        rotinaSelecionada.id;
+
+
+    rotinas =
+        rotinas.filter(
+            (rotina) =>
+                rotina.id !== id
+        );
+
+
+    rotinaSelecionada =
+        null;
+
+
+    acaoConfirmacao =
+        null;
+
+
+    fecharModal(
+        confirmModal
+    );
+
+
+    atualizarInterface();
+
+
+    mostrarToast(
+        "Demanda excluída com sucesso."
+    );
+
+}
+
+
+// ============================================================
+// FORMULÁRIO DE ROTINA
 // ============================================================
 
 function configurarFormularioRotina() {
@@ -1111,15 +1835,15 @@ function configurarFormularioRotina() {
 
 
             const formData =
-                new FormData(routineForm);
+                new FormData(
+                    routineForm
+                );
 
 
             const descricao =
-                formData.get("description");
-
-
-            const distribuicao =
-                formData.get("distribution");
+                formData
+                    .get("description")
+                    ?.trim();
 
 
             const dia =
@@ -1127,67 +1851,163 @@ function configurarFormularioRotina() {
 
 
             const periodo =
-                formData.get("period");
+                formData
+                    .get("period")
+                    ?.trim();
 
 
             const prioridade =
-                formData.get("priority");
+                formData.get(
+                    "priority"
+                );
 
 
             const procedimentoTexto =
-                formData.get("procedure");
+                formData
+                    .get("procedure")
+                    ?.trim();
 
 
             const observacoes =
-                formData.get("notes");
+                formData
+                    .get("notes")
+                    ?.trim();
 
 
             const procedimento =
                 procedimentoTexto
                     ? procedimentoTexto
                         .split("\n")
-                        .map((linha) => linha.trim())
+                        .map(
+                            (linha) =>
+                                linha.trim()
+                        )
                         .filter(Boolean)
                     : [];
 
 
-            const novaRotina = {
+            // =================================================
+            // EDIÇÃO
+            // =================================================
 
-                id:
-                    gerarIdUnico(),
+            if (
+                modoEdicao &&
+                rotinaSelecionada
+            ) {
 
-                descricao,
-
-                distribuicao:
-                    formatarDistribuicao(
-                        distribuicao
-                    ),
-
-                dia,
-
-                periodo:
-                    formatarPeriodo(
-                        periodo
-                    ),
-
-                prioridade,
-
-                status:
-                    "pendente",
-
-                procedimento,
-
-                observacoes
-
-            };
+                rotinaSelecionada.descricao =
+                    descricao;
 
 
-            rotinas.push(
-                novaRotina
-            );
+                rotinaSelecionada.dia =
+                    dia;
 
+
+                rotinaSelecionada.periodo =
+                    periodo;
+
+
+                rotinaSelecionada.prioridade =
+                    prioridade;
+
+
+                rotinaSelecionada.procedimento =
+                    procedimento;
+
+
+                rotinaSelecionada.observacoes =
+                    observacoes;
+
+
+                mostrarToast(
+                    "Demanda atualizada com sucesso."
+                );
+
+            }
+
+
+            // =================================================
+            // NOVA ROTINA
+            // =================================================
+
+            else {
+
+                const novaRotina = {
+
+                    id:
+                        gerarIdUnico(),
+
+                    descricao,
+
+                    dia,
+
+                    periodo,
+
+                    prioridade,
+
+                    status:
+                        "pendente",
+
+                    procedimento,
+
+                    observacoes
+
+                };
+
+
+                rotinas.push(
+                    novaRotina
+                );
+
+
+                mostrarToast(
+                    "Rotina cadastrada com sucesso."
+                );
+
+            }
+
+
+            // =================================================
+            // LIMPEZA
+            // =================================================
 
             routineForm.reset();
+
+
+            modoEdicao =
+                false;
+
+
+            rotinaSelecionada =
+                null;
+
+
+            const titulo =
+                document.getElementById(
+                    "routineModalTitle"
+                );
+
+
+            if (titulo) {
+
+                titulo.textContent =
+                    "Nova Rotina";
+
+            }
+
+
+            const botaoSalvar =
+                routineForm.querySelector(
+                    'button[type="submit"]'
+                );
+
+
+            if (botaoSalvar) {
+
+                botaoSalvar.textContent =
+                    "Salvar Rotina";
+
+            }
 
 
             fecharModal(
@@ -1196,11 +2016,6 @@ function configurarFormularioRotina() {
 
 
             atualizarInterface();
-
-
-            mostrarToast(
-                "Rotina cadastrada com sucesso."
-            );
 
         }
     );
@@ -1215,28 +2030,40 @@ function configurarFormularioRotina() {
 function configurarBotoesNovaRotina() {
 
     const botao =
-        document.getElementById("btnNewRoutine");
+        document.getElementById(
+            "btnNewRoutine"
+        );
 
 
     if (botao) {
 
         botao.addEventListener(
             "click",
-            () => abrirModal(routineModal)
+            () => {
+
+                iniciarNovaRotina();
+
+            }
         );
 
     }
 
 
     const botaoProcedimento =
-        document.getElementById("btnNewProcedure");
+        document.getElementById(
+            "btnNewProcedure"
+        );
 
 
     if (botaoProcedimento) {
 
         botaoProcedimento.addEventListener(
             "click",
-            () => abrirModal(routineModal)
+            () => {
+
+                iniciarNovaRotina();
+
+            }
         );
 
     }
@@ -1244,8 +2071,60 @@ function configurarBotoesNovaRotina() {
 }
 
 
-// Executa depois que todos os elementos estão disponíveis
-configurarBotoesNovaRotina();
+// ============================================================
+// INICIAR NOVA ROTINA
+// ============================================================
+
+function iniciarNovaRotina() {
+
+    modoEdicao =
+        false;
+
+
+    rotinaSelecionada =
+        null;
+
+
+    if (routineForm) {
+
+        routineForm.reset();
+
+    }
+
+
+    const titulo =
+        document.getElementById(
+            "routineModalTitle"
+        );
+
+
+    if (titulo) {
+
+        titulo.textContent =
+            "Nova Rotina";
+
+    }
+
+
+    const botaoSalvar =
+        routineForm?.querySelector(
+            'button[type="submit"]'
+        );
+
+
+    if (botaoSalvar) {
+
+        botaoSalvar.textContent =
+            "Salvar Rotina";
+
+    }
+
+
+    abrirModal(
+        routineModal
+    );
+
+}
 
 
 // ============================================================
@@ -1288,7 +2167,13 @@ function configurarModais() {
 
         fecharDemanda.addEventListener(
             "click",
-            () => fecharModal(demandModal)
+            () => {
+
+                fecharModal(
+                    demandModal
+                );
+
+            }
         );
 
     }
@@ -1298,7 +2183,15 @@ function configurarModais() {
 
         fecharRotina.addEventListener(
             "click",
-            () => fecharModal(routineModal)
+            () => {
+
+                fecharModal(
+                    routineModal
+                );
+
+                resetarFormularioRotina();
+
+            }
         );
 
     }
@@ -1308,7 +2201,15 @@ function configurarModais() {
 
         cancelarRotina.addEventListener(
             "click",
-            () => fecharModal(routineModal)
+            () => {
+
+                fecharModal(
+                    routineModal
+                );
+
+                resetarFormularioRotina();
+
+            }
         );
 
     }
@@ -1318,7 +2219,16 @@ function configurarModais() {
 
         fecharConfirmacao.addEventListener(
             "click",
-            () => fecharModal(confirmModal)
+            () => {
+
+                fecharModal(
+                    confirmModal
+                );
+
+                acaoConfirmacao =
+                    null;
+
+            }
         );
 
     }
@@ -1328,7 +2238,16 @@ function configurarModais() {
 
         cancelarConfirmacao.addEventListener(
             "click",
-            () => fecharModal(confirmModal)
+            () => {
+
+                fecharModal(
+                    confirmModal
+                );
+
+                acaoConfirmacao =
+                    null;
+
+            }
         );
 
     }
@@ -1336,31 +2255,48 @@ function configurarModais() {
 
     document.querySelectorAll(
         ".modal-overlay"
-    ).forEach((overlay) => {
+    ).forEach(
+        (overlay) => {
 
-        overlay.addEventListener(
-            "click",
-            (event) => {
+            overlay.addEventListener(
+                "click",
+                (event) => {
 
-                if (
-                    event.target === overlay
-                ) {
+                    if (
+                        event.target ===
+                        overlay
+                    ) {
 
-                    fecharModal(overlay);
+                        fecharModal(
+                            overlay
+                        );
+
+                        if (
+                            overlay ===
+                            routineModal
+                        ) {
+
+                            resetarFormularioRotina();
+
+                        }
+
+                    }
 
                 }
+            );
 
-            }
-        );
-
-    });
+        }
+    );
 
 
     document.addEventListener(
         "keydown",
         (event) => {
 
-            if (event.key === "Escape") {
+            if (
+                event.key ===
+                "Escape"
+            ) {
 
                 fecharTodosModais();
 
@@ -1372,11 +2308,70 @@ function configurarModais() {
 }
 
 
+// ============================================================
+// RESETAR FORMULÁRIO
+// ============================================================
+
+function resetarFormularioRotina() {
+
+    modoEdicao =
+        false;
+
+
+    rotinaSelecionada =
+        null;
+
+
+    if (routineForm) {
+
+        routineForm.reset();
+
+    }
+
+
+    const titulo =
+        document.getElementById(
+            "routineModalTitle"
+        );
+
+
+    if (titulo) {
+
+        titulo.textContent =
+            "Nova Rotina";
+
+    }
+
+
+    const botaoSalvar =
+        routineForm?.querySelector(
+            'button[type="submit"]'
+        );
+
+
+    if (botaoSalvar) {
+
+        botaoSalvar.textContent =
+            "Salvar Rotina";
+
+    }
+
+}
+
+
+// ============================================================
+// ABRIR MODAL
+// ============================================================
+
 function abrirModal(modal) {
 
     if (!modal) return;
 
-    modal.classList.remove("hidden");
+
+    modal.classList.remove(
+        "hidden"
+    );
+
 
     document.body.classList.add(
         "modal-open"
@@ -1385,11 +2380,19 @@ function abrirModal(modal) {
 }
 
 
+// ============================================================
+// FECHAR MODAL
+// ============================================================
+
 function fecharModal(modal) {
 
     if (!modal) return;
 
-    modal.classList.add("hidden");
+
+    modal.classList.add(
+        "hidden"
+    );
+
 
     if (
         !document.querySelector(
@@ -1406,38 +2409,38 @@ function fecharModal(modal) {
 }
 
 
+// ============================================================
+// FECHAR TODOS OS MODAIS
+// ============================================================
+
 function fecharTodosModais() {
 
     document.querySelectorAll(
         ".modal-overlay"
-    ).forEach((modal) => {
+    ).forEach(
+        (modal) => {
 
-        modal.classList.add("hidden");
+            modal.classList.add(
+                "hidden"
+            );
 
-    });
+        }
+    );
 
 
     document.body.classList.remove(
         "modal-open"
     );
 
-}
 
-
-// ============================================================
-// CARDS
-// ============================================================
-
-function configurarCards() {
-
-    // Os cards criados dinamicamente
-    // já recebem o evento ao serem criados.
+    acaoConfirmacao =
+        null;
 
 }
 
 
 // ============================================================
-// PROCEDIMENTOS
+// RENDERIZAR PROCEDIMENTOS
 // ============================================================
 
 function renderizarProcedimentos() {
@@ -1454,76 +2457,99 @@ function renderizarProcedimentos() {
     lista.innerHTML = "";
 
 
-    rotinas.forEach((rotina) => {
+    rotinas.forEach(
+        (rotina) => {
 
-        const card =
-            document.createElement("article");
-
-        card.className =
-            "procedure-card";
-
-
-        card.dataset.routineId =
-            rotina.id;
+            const card =
+                document.createElement(
+                    "article"
+                );
 
 
-        card.innerHTML = `
-
-            <div class="procedure-card-header">
-
-                <span class="procedure-category">
-                    ROTINA
-                </span>
-
-                <span class="priority-indicator ${rotina.prioridade}">
-                    ${formatarPrioridade(rotina.prioridade)}
-                </span>
-
-            </div>
+            card.className =
+                "procedure-card";
 
 
-            <h3>
-                ${escapeHTML(rotina.descricao)}
-            </h3>
+            card.dataset.routineId =
+                rotina.id;
 
 
-            <p>
-                ${escapeHTML(
-                    rotina.procedimento?.[0] ||
-                    "Nenhum procedimento cadastrado."
-                )}
-            </p>
+            card.innerHTML = `
+
+                <div class="procedure-card-header">
+
+                    <span class="procedure-category">
+                        ROTINA
+                    </span>
+
+                    <span class="priority-indicator ${rotina.prioridade}">
+                        ${formatarPrioridade(
+                            rotina.prioridade
+                        )}
+                    </span>
+
+                </div>
 
 
-            <button
-                type="button"
-                class="procedure-link"
-            >
-                Abrir procedimento →
-            </button>
-
-        `;
+                <h3>
+                    ${escapeHTML(
+                        rotina.descricao
+                    )}
+                </h3>
 
 
-        card
-            .querySelector(
-                ".procedure-link"
-            )
-            .addEventListener(
-                "click",
-                () => abrirDetalhesRotina(rotina.id)
+                <p>
+                    ${escapeHTML(
+                        rotina.procedimento?.[0] ||
+                        "Nenhum procedimento cadastrado."
+                    )}
+                </p>
+
+
+                <button
+                    type="button"
+                    class="procedure-link"
+                >
+                    Abrir procedimento →
+                </button>
+
+            `;
+
+
+            const botao =
+                card.querySelector(
+                    ".procedure-link"
+                );
+
+
+            if (botao) {
+
+                botao.addEventListener(
+                    "click",
+                    () => {
+
+                        abrirDetalhesRotina(
+                            rotina.id
+                        );
+
+                    }
+                );
+
+            }
+
+
+            lista.appendChild(
+                card
             );
 
-
-        lista.appendChild(card);
-
-    });
+        }
+    );
 
 }
 
 
 // ============================================================
-// INTERFACE GERAL
+// ATUALIZAR INTERFACE
 // ============================================================
 
 function atualizarInterface() {
@@ -1542,79 +2568,61 @@ function atualizarInterface() {
 
 
 // ============================================================
-// FORMATAÇÕES
+// FORMATAÇÃO DE PRIORIDADE
 // ============================================================
 
 function formatarPrioridade(valor) {
 
     const prioridades = {
 
-        alta: "Alta",
+        alta:
+            "Alta",
 
-        media: "Média",
+        media:
+            "Média",
 
-        baixa: "Baixa"
+        baixa:
+            "Baixa"
 
     };
 
 
-    return prioridades[valor] || valor;
+    return prioridades[
+        valor
+    ] || valor;
 
 }
 
 
-function formatarDistribuicao(valor) {
+// ============================================================
+// FORMATAÇÃO DE DIA
+// ============================================================
 
-    const distribuicoes = {
+function formatarDia(valor) {
 
-        diario: "Diariamente",
+    const dias = {
 
-        segunda: "Segunda-feira",
+        segunda:
+            "Segunda-feira",
 
-        terca: "Terça-feira",
+        terca:
+            "Terça-feira",
 
-        quarta: "Quarta-feira",
+        quarta:
+            "Quarta-feira",
 
-        quinta: "Quinta-feira",
+        quinta:
+            "Quinta-feira",
 
-        sexta: "Sexta-feira",
-
-        "segunda-quinta":
-            "Segunda e Quinta",
-
-        solicitacao:
-            "Sob solicitação"
-
-    };
-
-
-    return distribuicoes[valor] || valor;
-
-}
-
-
-function formatarPeriodo(valor) {
-
-    const periodos = {
-
-        atual: "Mês Atual",
-
-        "atual-anterior":
-            "Mês Atual × Anterior",
-
-        "90-dias":
-            "Últimos 90 dias",
-
-        "90-atual":
-            "90 dias × Mês Atual",
-
-        personalizado:
-            "Personalizado"
+        sexta:
+            "Sexta-feira"
 
     };
 
 
-    return periodos[valor] || valor;
+    return dias[
+        valor
+    ] || valor;
 
 }
 
@@ -1643,17 +2651,42 @@ function gerarIdUnico() {
 
 function escapeHTML(valor) {
 
-    if (valor === null || valor === undefined) {
+    if (
+        valor === null ||
+        valor === undefined
+    ) {
+
         return "";
+
     }
 
 
     return String(valor)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 
 }
 
@@ -1674,7 +2707,9 @@ function mostrarToast(mensagem) {
 
 
     const toast =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
 
     toast.className =
@@ -1685,40 +2720,51 @@ function mostrarToast(mensagem) {
         mensagem;
 
 
-    container.appendChild(toast);
+    container.appendChild(
+        toast
+    );
 
 
-    setTimeout(() => {
+    setTimeout(
+        () => {
 
-        toast.classList.add(
-            "show"
-        );
+            toast.classList.add(
+                "show"
+            );
 
-    }, 10);
-
-
-    setTimeout(() => {
-
-        toast.classList.remove(
-            "show"
-        );
+        },
+        10
+    );
 
 
-        setTimeout(() => {
+    setTimeout(
+        () => {
 
-            toast.remove();
+            toast.classList.remove(
+                "show"
+            );
 
-        }, 300);
 
-    }, 3000);
+            setTimeout(
+                () => {
+
+                    toast.remove();
+
+                },
+                300
+            );
+
+        },
+        3000
+    );
 
 }
 
 
 // ============================================================
-// CONSOLE
+// SISTEMA CARREGADO
 // ============================================================
 
 console.log(
-    "Agenda Compras V2 carregada."
+    "Agenda Compras V2 carregada corretamente."
 );

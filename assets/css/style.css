@@ -34,7 +34,7 @@
         0 8px 24px rgba(0, 0, 0, 0.08);
 
     --shadow-lg:
-        0 18px 50px rgba(0, 0, 0, 0.15);
+        0 10px 30px rgba(0, 0, 0, 0.12);
 
     --radius-sm: 8px;
     --radius-md: 12px;
@@ -42,9 +42,6 @@
     --radius-xl: 22px;
 
     --sidebar-width: 240px;
-
-    --transition:
-        all 0.2s ease;
 
 }
 
@@ -83,10 +80,6 @@ body {
 
 }
 
-
-/* ==========================================================
-   ELEMENTOS GERAIS
-========================================================== */
 
 button,
 input,
@@ -140,41 +133,56 @@ img {
 
 .login-container {
 
-    width: min(100%, 430px);
+    width:
+        min(100%, 430px);
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display:
+        flex;
 
-    gap: 22px;
+    flex-direction:
+        column;
+
+    align-items:
+        center;
+
+    gap:
+        22px;
 
 }
 
 
 .login-logo {
 
-    width: 210px;
+    width:
+        210px;
 
-    display: flex;
-    justify-content: center;
+    display:
+        flex;
+
+    justify-content:
+        center;
 
 }
 
 
 .login-logo img {
 
-    max-height: 90px;
+    max-height:
+        90px;
 
-    width: auto;
+    width:
+        auto;
 
-    object-fit: contain;
+    object-fit:
+        contain;
 
 }
 
 
 .login-card {
 
-    width: 100%;
+    width:
+        100%;
 
     background:
         rgba(255, 255, 255, 0.97);
@@ -185,7 +193,8 @@ img {
     border-radius:
         var(--radius-xl);
 
-    padding: 32px;
+    padding:
+        32px;
 
     box-shadow:
         var(--shadow-lg);
@@ -195,9 +204,11 @@ img {
 
 .login-header {
 
-    text-align: center;
+    text-align:
+        center;
 
-    margin-bottom: 28px;
+    margin-bottom:
+        28px;
 
 }
 
@@ -221,7 +232,8 @@ img {
 
 .login-header p {
 
-    margin-top: 5px;
+    margin-top:
+        5px;
 
     color:
         var(--text-light);
@@ -248,10 +260,14 @@ img {
 
 .login-footer {
 
-    width: 100%;
+    width:
+        100%;
 
-    display: flex;
-    justify-content: space-between;
+    display:
+        flex;
+
+    justify-content:
+        space-between;
 
     color:
         rgba(255, 255, 255, 0.78);
@@ -299,7 +315,8 @@ img {
 .form-group select,
 .form-group textarea {
 
-    width: 100%;
+    width:
+        100%;
 
     border:
         1px solid var(--border);
@@ -317,7 +334,8 @@ img {
         none;
 
     transition:
-        var(--transition);
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 
 }
 
@@ -430,7 +448,9 @@ img {
         700;
 
     transition:
-        var(--transition);
+        background-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 
 }
 
@@ -478,6 +498,31 @@ img {
 
     background:
         #eeeae2;
+
+}
+
+
+.btn-danger {
+
+    background:
+        var(--danger);
+
+    color:
+        #ffffff;
+
+}
+
+
+.btn-danger:hover {
+
+    background:
+        #a92f2f;
+
+    transform:
+        translateY(-1px);
+
+    box-shadow:
+        var(--shadow-sm);
 
 }
 
@@ -679,7 +724,8 @@ img {
         600;
 
     transition:
-        var(--transition);
+        background-color 0.2s ease,
+        color 0.2s ease;
 
 }
 
@@ -1138,7 +1184,9 @@ img {
         pointer;
 
     transition:
-        var(--transition);
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
 
 }
 
@@ -1842,7 +1890,8 @@ img {
         0 2px 5px rgba(0, 0, 0, 0.04);
 
     transition:
-        var(--transition);
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 
 }
 
@@ -1971,7 +2020,8 @@ img {
         var(--shadow-sm);
 
     transition:
-        var(--transition);
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 
 }
 
@@ -2096,9 +2146,6 @@ img {
     background:
         rgba(25, 20, 15, 0.55);
 
-    backdrop-filter:
-        blur(3px);
-
 }
 
 
@@ -2124,34 +2171,6 @@ img {
 
     box-shadow:
         var(--shadow-lg);
-
-    animation:
-        modalIn 0.2s ease;
-
-}
-
-
-@keyframes modalIn {
-
-    from {
-
-        opacity:
-            0;
-
-        transform:
-            translateY(10px) scale(0.98);
-
-    }
-
-    to {
-
-        opacity:
-            1;
-
-        transform:
-            translateY(0) scale(1);
-
-    }
 
 }
 
@@ -2240,6 +2259,10 @@ body.modal-open {
 
     line-height:
         1;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
 
 }
 
@@ -2540,7 +2563,7 @@ body.modal-open {
         flex;
 
     justify-content:
-        flex-end;
+        space-between;
 
     align-items:
         center;
@@ -2550,6 +2573,20 @@ body.modal-open {
 
     border-top:
         1px solid var(--border-light);
+
+}
+
+
+.modal-footer-actions {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        10px;
 
 }
 
@@ -2584,7 +2621,7 @@ body.modal-open {
 
 
 /* ==========================================================
-   RADIO PRIORIDADE
+   PRIORIDADE
 ========================================================== */
 
 .priority-group {
@@ -2592,36 +2629,41 @@ body.modal-open {
     border:
         none;
 
+    margin:
+        0;
+
+    padding:
+        0;
+
 }
 
 
 .priority-group legend {
 
     margin-bottom:
-        9px;
+        10px;
 
 }
 
 
-.radio-option {
+.priority-options {
 
     display:
-        flex;
+        grid;
 
-    align-items:
-        center;
+    grid-template-columns:
+        repeat(3, 1fr);
 
     gap:
-        8px;
+        10px;
 
-    margin-bottom:
-        8px;
+}
 
-    font-size:
-        12px;
 
-    color:
-        var(--text);
+.priority-option {
+
+    position:
+        relative;
 
     cursor:
         pointer;
@@ -2629,10 +2671,160 @@ body.modal-open {
 }
 
 
-.radio-option input {
+.priority-option input {
 
-    accent-color:
-        var(--primary);
+    position:
+        absolute;
+
+    opacity:
+        0;
+
+    pointer-events:
+        none;
+
+}
+
+
+.priority-option-content {
+
+    min-height:
+        48px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    gap:
+        9px;
+
+    padding:
+        0 14px;
+
+    background:
+        var(--surface);
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius-md);
+
+    color:
+        var(--text-light);
+
+    font-size:
+        12px;
+
+    font-weight:
+        700;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+
+}
+
+
+.priority-dot {
+
+    width:
+        9px;
+
+    height:
+        9px;
+
+    border-radius:
+        50%;
+
+    background:
+        var(--text-muted);
+
+}
+
+
+.priority-option.high .priority-dot {
+
+    background:
+        var(--danger);
+
+}
+
+
+.priority-option.high input:checked +
+.priority-option-content {
+
+    background:
+        var(--danger-soft);
+
+    border-color:
+        var(--danger);
+
+    color:
+        var(--danger);
+
+}
+
+
+.priority-option.medium .priority-dot {
+
+    background:
+        var(--warning);
+
+}
+
+
+.priority-option.medium input:checked +
+.priority-option-content {
+
+    background:
+        var(--warning-soft);
+
+    border-color:
+        var(--warning);
+
+    color:
+        var(--warning);
+
+}
+
+
+.priority-option.low .priority-dot {
+
+    background:
+        var(--info);
+
+}
+
+
+.priority-option.low input:checked +
+.priority-option-content {
+
+    background:
+        var(--info-soft);
+
+    border-color:
+        var(--info);
+
+    color:
+        var(--info);
+
+}
+
+
+.priority-option-content:hover {
+
+    border-color:
+        var(--primary-light);
+
+    transform:
+        translateY(-1px);
 
 }
 
@@ -2747,7 +2939,8 @@ body.modal-open {
         translateY(10px);
 
     transition:
-        all 0.3s ease;
+        opacity 0.3s ease,
+        transform 0.3s ease;
 
 }
 
@@ -2966,6 +3159,14 @@ body.modal-open {
     }
 
 
+    .priority-options {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
     .modal-overlay {
 
         padding:
@@ -3007,12 +3208,27 @@ body.modal-open {
     .modal-footer {
 
         flex-direction:
+            column;
+
+        align-items:
+            stretch;
+
+    }
+
+
+    .modal-footer-actions {
+
+        width:
+            100%;
+
+        flex-direction:
             column-reverse;
 
     }
 
 
-    .modal-footer .btn {
+    .modal-footer-actions .btn,
+    .modal-footer > .btn {
 
         width:
             100%;

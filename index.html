@@ -1,39 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Agenda Compras</title>
 
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link
+        rel="stylesheet"
+        href="assets/css/style.css"
+    >
+
 </head>
 
+
 <body>
+
 
     <!-- =========================================================
          TELA DE LOGIN
     ========================================================== -->
 
-    <section id="loginScreen" class="screen login-screen">
+    <section
+        id="loginScreen"
+        class="screen login-screen"
+    >
 
         <div class="login-container">
 
+
             <div class="login-logo">
-                <img src="assets/img/logo-grupo.png" alt="Grupo Zanol & Thomaz">
+
+                <img
+                    src="assets/img/logo-grupo.png"
+                    alt="Grupo Zanol & Thomaz"
+                >
+
             </div>
+
 
             <div class="login-card">
 
+
                 <div class="login-header">
-                    <h1>AGENDA COMPRAS</h1>
-                    <p>Central Operacional</p>
+
+                    <h1>
+                        AGENDA COMPRAS
+                    </h1>
+
+                    <p>
+                        Central Operacional
+                    </p>
+
                 </div>
 
-                <form id="loginForm" class="login-form">
+
+                <form
+                    id="loginForm"
+                    class="login-form"
+                >
 
                     <div class="form-group">
-                        <label for="loginPassword">Senha</label>
+
+                        <label for="loginPassword">
+                            Senha
+                        </label>
 
                         <input
                             type="password"
@@ -43,55 +80,106 @@
                             autocomplete="current-password"
                             required
                         >
+
                     </div>
 
-                    <button type="submit" class="btn btn-primary">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
                         Entrar
                     </button>
 
-                    <p id="loginError" class="login-error" aria-live="polite"></p>
+
+                    <p
+                        id="loginError"
+                        class="login-error"
+                        aria-live="polite"
+                    ></p>
+
 
                 </form>
 
+
             </div>
 
+
             <div class="login-footer">
-                <span>Agenda Compras</span>
-                <span>v2.0</span>
+
+                <span>
+                    Agenda Compras
+                </span>
+
+                <span>
+                    v2.0
+                </span>
+
             </div>
+
 
         </div>
 
     </section>
 
 
+
     <!-- =========================================================
          SISTEMA
     ========================================================== -->
 
-    <section id="appScreen" class="app-screen hidden">
+    <section
+        id="appScreen"
+        class="app-screen hidden"
+    >
+
 
         <!-- =====================================================
              SIDEBAR
         ====================================================== -->
 
-        <aside id="sidebar" class="sidebar">
+        <aside
+            id="sidebar"
+            class="sidebar"
+        >
+
 
             <div class="sidebar-header">
 
+
                 <div class="sidebar-logo">
-                    <img src="assets/img/logo-grupo.png" alt="Grupo Zanol & Thomaz">
+
+                    <img
+                        src="assets/img/logo-grupo.png"
+                        alt="Grupo Zanol & Thomaz"
+                    >
+
                 </div>
 
+
                 <div class="sidebar-title">
-                    <strong>Agenda Compras</strong>
-                    <span>Central Operacional</span>
+
+                    <strong>
+                        Agenda Compras
+                    </strong>
+
+                    <span>
+                        Central Operacional
+                    </span>
+
                 </div>
+
 
             </div>
 
 
+
+            <!-- =================================================
+                 NAVEGAÇÃO
+            ================================================== -->
+
             <nav class="sidebar-navigation">
+
 
                 <button
                     type="button"
@@ -99,9 +187,17 @@
                     data-page="inicio"
                     id="navInicio"
                 >
-                    <span class="nav-icon">⌂</span>
-                    <span>Início</span>
+
+                    <span class="nav-icon">
+                        ⌂
+                    </span>
+
+                    <span>
+                        Início
+                    </span>
+
                 </button>
+
 
                 <button
                     type="button"
@@ -109,9 +205,17 @@
                     data-page="semana"
                     id="navSemana"
                 >
-                    <span class="nav-icon">▦</span>
-                    <span>Semana</span>
+
+                    <span class="nav-icon">
+                        ▦
+                    </span>
+
+                    <span>
+                        Semana
+                    </span>
+
                 </button>
+
 
                 <button
                     type="button"
@@ -119,27 +223,51 @@
                     data-page="procedimentos"
                     id="navProcedimentos"
                 >
-                    <span class="nav-icon">☷</span>
-                    <span>Procedimentos</span>
+
+                    <span class="nav-icon">
+                        ☷
+                    </span>
+
+                    <span>
+                        Procedimentos
+                    </span>
+
                 </button>
+
 
             </nav>
 
 
+
+            <!-- =================================================
+                 SAIR
+            ================================================== -->
+
             <div class="sidebar-footer">
+
 
                 <button
                     type="button"
                     id="btnLogout"
                     class="nav-item logout-button"
                 >
-                    <span class="nav-icon">↪</span>
-                    <span>Sair</span>
+
+                    <span class="nav-icon">
+                        ↪
+                    </span>
+
+                    <span>
+                        Sair
+                    </span>
+
                 </button>
+
 
             </div>
 
+
         </aside>
+
 
 
         <!-- =====================================================
@@ -150,12 +278,14 @@
 
 
             <!-- =================================================
-                 HEADER
+                 TOPBAR
             ================================================== -->
 
             <header class="topbar">
 
+
                 <div class="topbar-left">
+
 
                     <button
                         type="button"
@@ -166,19 +296,34 @@
                         ☰
                     </button>
 
+
                     <div>
-                        <span class="page-subtitle">Agenda Compras</span>
-                        <h2 id="pageTitle">Início</h2>
+
+                        <span class="page-subtitle">
+                            Agenda Compras
+                        </span>
+
+                        <h2 id="pageTitle">
+                            Início
+                        </h2>
+
                     </div>
+
 
                 </div>
 
 
+
                 <div class="topbar-right">
 
-                    <div class="current-date" id="currentDate">
+
+                    <div
+                        class="current-date"
+                        id="currentDate"
+                    >
                         Segunda-feira, 15 de setembro
                     </div>
+
 
                     <button
                         type="button"
@@ -188,9 +333,12 @@
                         + Nova Rotina
                     </button>
 
+
                 </div>
 
+
             </header>
+
 
 
             <!-- =================================================
@@ -203,29 +351,45 @@
                 data-page-content="inicio"
             >
 
+
                 <div class="page-heading">
 
+
                     <div>
-                        <span class="section-label">VISÃO DO DIA</span>
+
+                        <span class="section-label">
+                            VISÃO DO DIA
+                        </span>
+
 
                         <h1>
+
                             Hoje •
-                            <span id="todayWeekday">Segunda-feira</span>
+                            <span id="todayWeekday">
+                                Segunda-feira
+                            </span>
+
                         </h1>
+
 
                         <p>
                             Estas são as demandas programadas para hoje.
                         </p>
+
+
                     </div>
+
 
                 </div>
 
 
-                <!-- =============================================
+
+                <!-- =================================================
                      INDICADORES
-                ============================================== -->
+                ================================================== -->
 
                 <div class="dashboard-metrics">
+
 
                     <div class="metric-card">
 
@@ -237,7 +401,7 @@
                             id="todayTotal"
                             class="metric-value"
                         >
-                            2
+                            0
                         </strong>
 
                     </div>
@@ -253,7 +417,7 @@
                             id="todayCompleted"
                             class="metric-value"
                         >
-                            1
+                            0
                         </strong>
 
                     </div>
@@ -269,129 +433,53 @@
                             id="todayPending"
                             class="metric-value"
                         >
-                            1
+                            0
                         </strong>
 
                     </div>
 
+
                 </div>
 
 
-                <!-- =============================================
+
+                <!-- =================================================
                      DEMANDAS DO DIA
-                ============================================== -->
+                ================================================== -->
 
                 <div class="section-header">
 
+
                     <div>
-                        <h3>Demandas do dia</h3>
+
+                        <h3>
+                            Demandas do dia
+                        </h3>
+
                         <p>
                             Clique em uma demanda para visualizar os detalhes.
                         </p>
+
                     </div>
+
 
                 </div>
 
+
+                <!--
+                    Os cards são criados automaticamente
+                    pelo JavaScript.
+                -->
 
                 <div
                     id="todayDemands"
                     class="demand-grid"
                 >
-
-                    <!-- CARD DA DEMANDA -->
-
-                    <article
-                        class="demand-card completed"
-                        data-routine-id="curva-d"
-                    >
-
-                        <div class="demand-card-header">
-
-                            <div class="demand-status-icon">
-                                ✓
-                            </div>
-
-                            <span class="status-badge completed">
-                                Feito
-                            </span>
-
-                        </div>
-
-
-                        <div class="demand-card-body">
-
-                            <h3>Curva D</h3>
-
-                            <p>
-                                Mês Atual × Anterior
-                            </p>
-
-                        </div>
-
-
-                        <div class="demand-card-footer">
-
-                            <span class="priority-indicator high">
-                                Alta
-                            </span>
-
-                            <span class="demand-action">
-                                Ver detalhes →
-                            </span>
-
-                        </div>
-
-                    </article>
-
-
-                    <!-- OUTRA DEMANDA -->
-
-                    <article
-                        class="demand-card pending"
-                        data-routine-id="transferencias"
-                    >
-
-                        <div class="demand-card-header">
-
-                            <div class="demand-status-icon">
-                                ◷
-                            </div>
-
-                            <span class="status-badge pending">
-                                Pendente
-                            </span>
-
-                        </div>
-
-
-                        <div class="demand-card-body">
-
-                            <h3>Transferências</h3>
-
-                            <p>
-                                Segunda e Quinta
-                            </p>
-
-                        </div>
-
-
-                        <div class="demand-card-footer">
-
-                            <span class="priority-indicator medium">
-                                Média
-                            </span>
-
-                            <span class="demand-action">
-                                Ver detalhes →
-                            </span>
-
-                        </div>
-
-                    </article>
-
                 </div>
 
+
             </section>
+
 
 
             <!-- =================================================
@@ -404,7 +492,9 @@
                 data-page-content="semana"
             >
 
+
                 <div class="page-heading">
+
 
                     <div>
 
@@ -412,26 +502,33 @@
                             VISÃO GERAL
                         </span>
 
+
                         <h1>
                             Semana Operacional
                         </h1>
+
 
                         <p>
                             Visualização geral de todas as suas demandas.
                         </p>
 
+
                     </div>
+
 
                 </div>
 
 
-                <!-- =============================================
+
+                <!-- =================================================
                      PROGRESSO DA SEMANA
-                ============================================== -->
+                ================================================== -->
 
                 <div class="weekly-progress-card">
 
+
                     <div class="weekly-progress-header">
+
 
                         <div>
 
@@ -439,67 +536,92 @@
                                 ACOMPANHAMENTO
                             </span>
 
+
                             <h3>
                                 Progresso da Semana
                             </h3>
 
+
                             <p>
+
                                 <span id="weekCompleted">
-                                    3
+                                    0
                                 </span>
+
                                 de
+
                                 <span id="weekTotal">
-                                    7
+                                    0
                                 </span>
+
                                 demandas concluídas
+
                             </p>
 
+
                         </div>
+
 
                         <strong
                             id="weekProgressPercent"
                             class="progress-percentage"
                         >
-                            43%
+                            0%
                         </strong>
+
 
                     </div>
 
 
+
+                    <!-- BARRA DE PROGRESSO -->
+
                     <div class="progress-bar">
+
 
                         <div
                             id="weekProgressFill"
                             class="progress-bar-fill"
-                            style="width: 43%;"
+                            style="width: 0%;"
                         ></div>
+
 
                     </div>
 
 
+
+                    <!-- DIAS -->
+
                     <div class="progress-days">
 
-                        <div class="progress-day completed">
+
+                        <div class="progress-day">
 
                             <span class="day-name">
                                 SEG
                             </span>
 
-                            <span class="day-progress">
-                                2/2
+                            <span
+                                class="day-progress"
+                                data-progress-day="segunda"
+                            >
+                                0/0
                             </span>
 
                         </div>
 
 
-                        <div class="progress-day current">
+                        <div class="progress-day">
 
                             <span class="day-name">
                                 TER
                             </span>
 
-                            <span class="day-progress">
-                                1/2
+                            <span
+                                class="day-progress"
+                                data-progress-day="terca"
+                            >
+                                0/0
                             </span>
 
                         </div>
@@ -511,8 +633,11 @@
                                 QUA
                             </span>
 
-                            <span class="day-progress">
-                                0/1
+                            <span
+                                class="day-progress"
+                                data-progress-day="quarta"
+                            >
+                                0/0
                             </span>
 
                         </div>
@@ -524,8 +649,11 @@
                                 QUI
                             </span>
 
-                            <span class="day-progress">
-                                0/1
+                            <span
+                                class="day-progress"
+                                data-progress-day="quinta"
+                            >
+                                0/0
                             </span>
 
                         </div>
@@ -537,20 +665,26 @@
                                 SEX
                             </span>
 
-                            <span class="day-progress">
-                                0/1
+                            <span
+                                class="day-progress"
+                                data-progress-day="sexta"
+                            >
+                                0/0
                             </span>
 
                         </div>
 
+
                     </div>
+
 
                 </div>
 
 
-                <!-- =============================================
+
+                <!-- =================================================
                      BLOCOS DA SEMANA
-                ============================================== -->
+                ================================================== -->
 
                 <div
                     id="weeklyBoard"
@@ -573,63 +707,31 @@
                                     SEGUNDA
                                 </span>
 
-                                <span class="day-date">
-                                    15 SET
+                                <span
+                                    class="day-date"
+                                    data-date-day="segunda"
+                                >
+                                    --
                                 </span>
 
                             </div>
 
+
                             <span class="day-count">
-                                2
+                                0
                             </span>
+
 
                         </div>
 
 
                         <div class="day-demands">
 
-                            <article
-                                class="weekly-demand-card completed"
-                                data-routine-id="curva-d"
-                            >
-
-                                <div class="weekly-card-top">
-
-                                    <span class="weekly-status-dot completed"></span>
-
-                                    <span class="status-badge completed">
-                                        Feito
-                                    </span>
-
-                                </div>
-
-                                <h3>Curva D</h3>
-
-                            </article>
-
-
-                            <article
-                                class="weekly-demand-card pending"
-                                data-routine-id="transferencias"
-                            >
-
-                                <div class="weekly-card-top">
-
-                                    <span class="weekly-status-dot pending"></span>
-
-                                    <span class="status-badge pending">
-                                        Pendente
-                                    </span>
-
-                                </div>
-
-                                <h3>Transferências</h3>
-
-                            </article>
-
                         </div>
 
+
                     </div>
+
 
 
                     <!-- TERÇA -->
@@ -647,45 +749,31 @@
                                     TERÇA
                                 </span>
 
-                                <span class="day-date">
-                                    16 SET
+                                <span
+                                    class="day-date"
+                                    data-date-day="terca"
+                                >
+                                    --
                                 </span>
 
                             </div>
 
+
                             <span class="day-count">
-                                1
+                                0
                             </span>
+
 
                         </div>
 
 
                         <div class="day-demands">
 
-                            <article
-                                class="weekly-demand-card pending"
-                                data-routine-id="custo-medio"
-                            >
-
-                                <div class="weekly-card-top">
-
-                                    <span class="weekly-status-dot pending"></span>
-
-                                    <span class="status-badge pending">
-                                        Pendente
-                                    </span>
-
-                                </div>
-
-                                <h3>
-                                    Custo Médio
-                                </h3>
-
-                            </article>
-
                         </div>
 
+
                     </div>
+
 
 
                     <!-- QUARTA -->
@@ -703,28 +791,31 @@
                                     QUARTA
                                 </span>
 
-                                <span class="day-date">
-                                    17 SET
+                                <span
+                                    class="day-date"
+                                    data-date-day="quarta"
+                                >
+                                    --
                                 </span>
 
                             </div>
+
 
                             <span class="day-count">
                                 0
                             </span>
 
-                        </div>
-
-
-                        <div class="day-demands empty-day">
-
-                            <div class="empty-state">
-                                Nenhuma demanda
-                            </div>
 
                         </div>
+
+
+                        <div class="day-demands">
+
+                        </div>
+
 
                     </div>
+
 
 
                     <!-- QUINTA -->
@@ -742,45 +833,31 @@
                                     QUINTA
                                 </span>
 
-                                <span class="day-date">
-                                    18 SET
+                                <span
+                                    class="day-date"
+                                    data-date-day="quinta"
+                                >
+                                    --
                                 </span>
 
                             </div>
 
+
                             <span class="day-count">
-                                1
+                                0
                             </span>
+
 
                         </div>
 
 
                         <div class="day-demands">
 
-                            <article
-                                class="weekly-demand-card pending"
-                                data-routine-id="transferencias"
-                            >
-
-                                <div class="weekly-card-top">
-
-                                    <span class="weekly-status-dot pending"></span>
-
-                                    <span class="status-badge pending">
-                                        Pendente
-                                    </span>
-
-                                </div>
-
-                                <h3>
-                                    Transferências
-                                </h3>
-
-                            </article>
-
                         </div>
 
+
                     </div>
+
 
 
                     <!-- SEXTA -->
@@ -798,49 +875,37 @@
                                     SEXTA
                                 </span>
 
-                                <span class="day-date">
-                                    19 SET
+                                <span
+                                    class="day-date"
+                                    data-date-day="sexta"
+                                >
+                                    --
                                 </span>
 
                             </div>
 
+
                             <span class="day-count">
-                                1
+                                0
                             </span>
+
 
                         </div>
 
 
                         <div class="day-demands">
 
-                            <article
-                                class="weekly-demand-card pending"
-                                data-routine-id="revisoes"
-                            >
-
-                                <div class="weekly-card-top">
-
-                                    <span class="weekly-status-dot pending"></span>
-
-                                    <span class="status-badge pending">
-                                        Pendente
-                                    </span>
-
-                                </div>
-
-                                <h3>
-                                    Revisões
-                                </h3>
-
-                            </article>
-
                         </div>
+
 
                     </div>
 
+
                 </div>
 
+
             </section>
+
 
 
             <!-- =================================================
@@ -853,7 +918,9 @@
                 data-page-content="procedimentos"
             >
 
+
                 <div class="page-heading">
+
 
                     <div>
 
@@ -861,15 +928,19 @@
                             BASE DE CONHECIMENTO
                         </span>
 
+
                         <h1>
                             Procedimentos
                         </h1>
+
 
                         <p>
                             Wiki das suas rotinas e processos.
                         </p>
 
+
                     </div>
+
 
                     <button
                         type="button"
@@ -879,90 +950,31 @@
                         + Novo Procedimento
                     </button>
 
+
                 </div>
 
+
+
+                <!--
+                    Os procedimentos são criados
+                    automaticamente pelo JavaScript.
+                -->
 
                 <div
                     id="procedureList"
                     class="procedure-grid"
                 >
-
-                    <article
-                        class="procedure-card"
-                        data-routine-id="curva-d"
-                    >
-
-                        <div class="procedure-card-header">
-
-                            <span class="procedure-category">
-                                ESTOQUE
-                            </span>
-
-                            <span class="priority-indicator high">
-                                Alta
-                            </span>
-
-                        </div>
-
-                        <h3>
-                            Curva D
-                        </h3>
-
-                        <p>
-                            Procedimento para análise de produtos parados.
-                        </p>
-
-                        <button
-                            type="button"
-                            class="procedure-link"
-                        >
-                            Abrir procedimento →
-                        </button>
-
-                    </article>
-
-
-                    <article
-                        class="procedure-card"
-                        data-routine-id="custo-medio"
-                    >
-
-                        <div class="procedure-card-header">
-
-                            <span class="procedure-category">
-                                CUSTOS
-                            </span>
-
-                            <span class="priority-indicator medium">
-                                Média
-                            </span>
-
-                        </div>
-
-                        <h3>
-                            Custo Médio
-                        </h3>
-
-                        <p>
-                            Procedimento para análise de custo médio por classificação.
-                        </p>
-
-                        <button
-                            type="button"
-                            class="procedure-link"
-                        >
-                            Abrir procedimento →
-                        </button>
-
-                    </article>
-
                 </div>
+
 
             </section>
 
+
         </main>
 
+
     </section>
+
 
 
     <!-- =========================================================
@@ -977,9 +989,12 @@
         aria-labelledby="demandModalTitle"
     >
 
+
         <div class="modal demand-modal">
 
+
             <div class="modal-header">
+
 
                 <div>
 
@@ -987,15 +1002,19 @@
                         DETALHES DA DEMANDA
                     </span>
 
+
                     <h2 id="demandModalTitle">
-                        Curva D
+                        Demanda
                     </h2>
 
+
                     <p id="demandModalSubtitle">
-                        Segunda-feira • Mês Atual × Anterior
+                        Dia • Período
                     </p>
 
+
                 </div>
+
 
                 <button
                     type="button"
@@ -1006,13 +1025,18 @@
                     ×
                 </button>
 
+
             </div>
+
 
 
             <div class="modal-content">
 
+
                 <div class="detail-grid">
 
+
+                    <!-- DESCRIÇÃO -->
 
                     <div class="detail-item">
 
@@ -1020,25 +1044,35 @@
                             Descrição
                         </span>
 
+
                         <p id="detailDescription">
-                            Análise do estoque parado comparando o mês atual com o mês anterior.
+                            -
                         </p>
+
 
                     </div>
 
+
+
+                    <!-- DIA -->
 
                     <div class="detail-item">
 
                         <span class="detail-label">
-                            Distribuição da tarefa
+                            Dia da rotina
                         </span>
 
-                        <p id="detailDistribution">
-                            Segunda-feira
+
+                        <p id="detailDay">
+                            -
                         </p>
+
 
                     </div>
 
+
+
+                    <!-- PERÍODO -->
 
                     <div class="detail-item">
 
@@ -1046,18 +1080,24 @@
                             Período dos dados
                         </span>
 
+
                         <p id="detailPeriod">
-                            Mês Atual × Anterior
+                            -
                         </p>
+
 
                     </div>
 
+
+
+                    <!-- PRIORIDADE -->
 
                     <div class="detail-item">
 
                         <span class="detail-label">
                             Prioridade
                         </span>
+
 
                         <span
                             id="detailPriority"
@@ -1066,18 +1106,41 @@
                             Alta
                         </span>
 
+
                     </div>
+
+
+
+                    <!-- OBSERVAÇÕES -->
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+                            Observações
+                        </span>
+
+
+                        <p id="detailNotes">
+                            Nenhuma observação cadastrada.
+                        </p>
+
+
+                    </div>
+
 
                 </div>
 
 
-                <!-- =============================================
+
+                <!-- =================================================
                      PROCEDIMENTO / WIKI
-                ============================================== -->
+                ================================================== -->
 
                 <div class="procedure-section">
 
+
                     <div class="procedure-section-header">
+
 
                         <div>
 
@@ -1085,11 +1148,14 @@
                                 PROCEDIMENTO
                             </span>
 
+
                             <h3>
                                 Wiki da rotina
                             </h3>
 
+
                         </div>
+
 
                     </div>
 
@@ -1099,91 +1165,74 @@
                         class="procedure-content"
                     >
 
-                        <div class="procedure-step">
 
-                            <span class="step-number">
-                                01
-                            </span>
-
-                            <span>
-                                Exportar relatório do BI
-                            </span>
-
+                        <div class="procedure-empty">
+                            Nenhum procedimento cadastrado.
                         </div>
 
-
-                        <div class="procedure-step">
-
-                            <span class="step-number">
-                                02
-                            </span>
-
-                            <span>
-                                Comparar com o mês anterior
-                            </span>
-
-                        </div>
-
-
-                        <div class="procedure-step">
-
-                            <span class="step-number">
-                                03
-                            </span>
-
-                            <span>
-                                Verificar aumento por classificação
-                            </span>
-
-                        </div>
-
-
-                        <div class="procedure-step">
-
-                            <span class="step-number">
-                                04
-                            </span>
-
-                            <span>
-                                Enviar resumo para a gestão
-                            </span>
-
-                        </div>
 
                     </div>
 
+
                 </div>
+
 
             </div>
 
+
+
+            <!-- =================================================
+                 AÇÕES DA DEMANDA
+            ================================================== -->
 
             <div class="modal-footer">
 
-                <button
-                    type="button"
-                    id="btnToggleStatus"
-                    class="btn btn-secondary"
-                >
-                    Marcar como concluída
-                </button>
 
                 <button
                     type="button"
-                    id="btnEditDemand"
-                    class="btn btn-primary"
+                    id="btnDeleteDemand"
+                    class="btn btn-danger"
                 >
-                    Editar demanda
+                    Excluir demanda
                 </button>
+
+
+                <div class="modal-footer-actions">
+
+
+                    <button
+                        type="button"
+                        id="btnToggleStatus"
+                        class="btn btn-secondary"
+                    >
+                        Marcar como concluída
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="btnEditDemand"
+                        class="btn btn-primary"
+                    >
+                        Editar demanda
+                    </button>
+
+
+                </div>
+
 
             </div>
 
+
         </div>
+
 
     </div>
 
 
+
     <!-- =========================================================
-         MODAL — NOVA ROTINA
+         MODAL — NOVA / EDITAR ROTINA
     ========================================================== -->
 
     <div
@@ -1194,9 +1243,12 @@
         aria-labelledby="routineModalTitle"
     >
 
+
         <div class="modal routine-modal">
 
+
             <div class="modal-header">
+
 
                 <div>
 
@@ -1204,15 +1256,19 @@
                         CADASTRO
                     </span>
 
+
                     <h2 id="routineModalTitle">
                         Nova Rotina
                     </h2>
+
 
                     <p>
                         Cadastro rápido para a Agenda Compras.
                     </p>
 
+
                 </div>
+
 
                 <button
                     type="button"
@@ -1223,18 +1279,32 @@
                     ×
                 </button>
 
+
             </div>
 
 
-            <form id="routineForm" class="routine-form">
+
+            <!-- =================================================
+                 FORMULÁRIO
+            ================================================== -->
+
+            <form
+                id="routineForm"
+                class="routine-form"
+            >
+
 
                 <!-- DESCRIÇÃO -->
 
                 <div class="form-group">
 
-                    <label for="routineDescription">
+
+                    <label
+                        for="routineDescription"
+                    >
                         Descrição
                     </label>
+
 
                     <input
                         type="text"
@@ -1244,71 +1314,22 @@
                         required
                     >
 
+
                 </div>
 
 
-                <!-- DISTRIBUIÇÃO -->
+
+                <!-- DIA DA ROTINA -->
 
                 <div class="form-group">
 
-                    <label for="routineDistribution">
-                        Distribuição da tarefa
-                    </label>
 
-                    <select
-                        id="routineDistribution"
-                        name="distribution"
-                        required
+                    <label
+                        for="routineDay"
                     >
-
-                        <option value="">
-                            Selecione
-                        </option>
-
-                        <option value="diario">
-                            Diariamente
-                        </option>
-
-                        <option value="segunda">
-                            Segunda-feira
-                        </option>
-
-                        <option value="terca">
-                            Terça-feira
-                        </option>
-
-                        <option value="quarta">
-                            Quarta-feira
-                        </option>
-
-                        <option value="quinta">
-                            Quinta-feira
-                        </option>
-
-                        <option value="sexta">
-                            Sexta-feira
-                        </option>
-
-                        <option value="segunda-quinta">
-                            Segunda e Quinta
-                        </option>
-
-                        <option value="solicitacao">
-                            Sob solicitação
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <!-- DIA PRINCIPAL -->
-
-                <div class="form-group">
-
-                    <label for="routineDay">
                         Dia da rotina
                     </label>
+
 
                     <select
                         id="routineDay"
@@ -1316,142 +1337,201 @@
                         required
                     >
 
+
                         <option value="">
                             Selecione
                         </option>
+
 
                         <option value="segunda">
                             Segunda-feira
                         </option>
 
+
                         <option value="terca">
                             Terça-feira
                         </option>
+
 
                         <option value="quarta">
                             Quarta-feira
                         </option>
 
+
                         <option value="quinta">
                             Quinta-feira
                         </option>
+
 
                         <option value="sexta">
                             Sexta-feira
                         </option>
 
+
                     </select>
 
+
                 </div>
+
 
 
                 <!-- PERÍODO -->
 
                 <div class="form-group">
 
-                    <label for="routinePeriod">
+
+                    <label
+                        for="routinePeriod"
+                    >
                         Período dos dados
                     </label>
 
-                    <select
+
+                    <input
+                        type="text"
                         id="routinePeriod"
                         name="period"
+                        placeholder="Ex.: Setembro x Agosto / Últimos 90 dias / Mês atual"
                         required
                     >
 
-                        <option value="">
-                            Selecione
-                        </option>
-
-                        <option value="atual">
-                            Mês Atual
-                        </option>
-
-                        <option value="atual-anterior">
-                            Mês Atual × Anterior
-                        </option>
-
-                        <option value="90-dias">
-                            Últimos 90 dias
-                        </option>
-
-                        <option value="90-atual">
-                            90 dias × Mês Atual
-                        </option>
-
-                        <option value="personalizado">
-                            Personalizado
-                        </option>
-
-                    </select>
 
                 </div>
 
 
+
                 <!-- PRIORIDADE -->
 
-                <fieldset class="form-group priority-group">
+                <fieldset
+                    class="form-group priority-group"
+                >
+
 
                     <legend>
                         Prioridade
                     </legend>
 
 
-                    <label class="radio-option">
+                    <div class="priority-options">
 
-                        <input
-                            type="radio"
-                            name="priority"
-                            value="alta"
-                            checked
+
+                        <label
+                            class="priority-option high"
                         >
 
-                        <span>
-                            Alta
-                        </span>
 
-                    </label>
+                            <input
+                                type="radio"
+                                name="priority"
+                                value="alta"
+                                checked
+                            >
 
 
-                    <label class="radio-option">
+                            <span
+                                class="priority-option-content"
+                            >
 
-                        <input
-                            type="radio"
-                            name="priority"
-                            value="media"
+
+                                <span class="priority-dot">
+                                </span>
+
+
+                                <span class="priority-text">
+                                    Alta
+                                </span>
+
+
+                            </span>
+
+
+                        </label>
+
+
+
+                        <label
+                            class="priority-option medium"
                         >
 
-                        <span>
-                            Média
-                        </span>
 
-                    </label>
+                            <input
+                                type="radio"
+                                name="priority"
+                                value="media"
+                            >
 
 
-                    <label class="radio-option">
+                            <span
+                                class="priority-option-content"
+                            >
 
-                        <input
-                            type="radio"
-                            name="priority"
-                            value="baixa"
+
+                                <span class="priority-dot">
+                                </span>
+
+
+                                <span class="priority-text">
+                                    Média
+                                </span>
+
+
+                            </span>
+
+
+                        </label>
+
+
+
+                        <label
+                            class="priority-option low"
                         >
 
-                        <span>
-                            Baixa
-                        </span>
 
-                    </label>
+                            <input
+                                type="radio"
+                                name="priority"
+                                value="baixa"
+                            >
+
+
+                            <span
+                                class="priority-option-content"
+                            >
+
+
+                                <span class="priority-dot">
+                                </span>
+
+
+                                <span class="priority-text">
+                                    Baixa
+                                </span>
+
+
+                            </span>
+
+
+                        </label>
+
+
+                    </div>
+
 
                 </fieldset>
+
 
 
                 <!-- PROCEDIMENTO / WIKI -->
 
                 <div class="form-group">
 
-                    <label for="routineProcedure">
+
+                    <label
+                        for="routineProcedure"
+                    >
                         Procedimento — Wiki
                     </label>
+
 
                     <textarea
                         id="routineProcedure"
@@ -1460,20 +1540,27 @@
                         placeholder="Descreva o passo a passo..."
                     ></textarea>
 
+
                     <small>
-                        Esse conteúdo ficará disponível nos detalhes da demanda.
+                        Cada linha será considerada uma etapa do procedimento.
                     </small>
 
+
                 </div>
+
 
 
                 <!-- OBSERVAÇÕES -->
 
                 <div class="form-group">
 
-                    <label for="routineNotes">
+
+                    <label
+                        for="routineNotes"
+                    >
                         Observações
                     </label>
+
 
                     <textarea
                         id="routineNotes"
@@ -1482,12 +1569,15 @@
                         placeholder="Informações adicionais, cuidados ou observações..."
                     ></textarea>
 
+
                 </div>
+
 
 
                 <!-- AÇÕES -->
 
                 <div class="form-actions">
+
 
                     <button
                         type="button"
@@ -1497,6 +1587,7 @@
                         Cancelar
                     </button>
 
+
                     <button
                         type="submit"
                         class="btn btn-primary"
@@ -1504,13 +1595,18 @@
                         Salvar Rotina
                     </button>
 
+
                 </div>
+
 
             </form>
 
+
         </div>
 
+
     </div>
+
 
 
     <!-- =========================================================
@@ -1522,11 +1618,15 @@
         class="modal-overlay hidden"
         role="dialog"
         aria-modal="true"
+        aria-labelledby="confirmTitle"
     >
+
 
         <div class="modal confirm-modal">
 
+
             <div class="modal-header">
+
 
                 <div>
 
@@ -1534,33 +1634,43 @@
                         CONFIRMAÇÃO
                     </span>
 
-                    <h2>
+
+                    <h2 id="confirmTitle">
                         Confirmar ação
                     </h2>
 
+
                 </div>
+
 
                 <button
                     type="button"
                     class="modal-close"
                     id="closeConfirmModal"
+                    aria-label="Fechar"
                 >
                     ×
                 </button>
 
+
             </div>
+
 
 
             <div class="modal-content">
 
+
                 <p id="confirmMessage">
-                    Deseja realmente marcar esta demanda como concluída?
+                    Deseja realmente excluir esta demanda?
                 </p>
+
 
             </div>
 
 
+
             <div class="modal-footer">
+
 
                 <button
                     type="button"
@@ -1570,23 +1680,28 @@
                     Cancelar
                 </button>
 
+
                 <button
                     type="button"
                     id="btnConfirmAction"
-                    class="btn btn-primary"
+                    class="btn btn-danger"
                 >
                     Confirmar
                 </button>
 
+
             </div>
 
+
         </div>
+
 
     </div>
 
 
+
     <!-- =========================================================
-         TOAST / NOTIFICAÇÕES
+         TOAST
     ========================================================== -->
 
     <div
@@ -1598,11 +1713,16 @@
     </div>
 
 
+
     <!-- =========================================================
          JAVASCRIPT
     ========================================================== -->
 
-<script src="assets/js/script.js"></script>
+    <script
+        src="assets/js/script.js"
+    ></script>
+
 
 </body>
+
 </html>
