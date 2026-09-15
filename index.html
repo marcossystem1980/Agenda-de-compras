@@ -3,326 +3,1606 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda de Compras - Ultra Assessoria</title>
-    <link rel="stylesheet" href="./assets/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.21/locales/pt-br.global.min.js"></script>
+
+    <title>Agenda Compras</title>
+
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body>
 
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <!-- =========================================================
+         TELA DE LOGIN
+    ========================================================== -->
 
-    <!-- MODAL DE LOGIN DO COMPRADOR -->
-    <div class="login-overlay" id="loginOverlay">
-        <div class="login-modal">
-            <h3 id="loginModalTitulo">Entrar</h3>
-            <p class="login-modal-sub">Digite sua senha para acessar o painel de lançamentos.</p>
-            <input type="password" id="inputSenhaComprador" placeholder="Senha" autocomplete="current-password">
-            <p class="login-modal-erro" id="loginModalErro" style="display: none;"></p>
-            <div class="login-modal-acoes">
-                <button type="button" class="btn-secondary" id="btnCancelarLogin">Cancelar</button>
-                <button type="button" class="btn-add" id="btnConfirmarLogin">Entrar</button>
+    <section id="loginScreen" class="screen login-screen">
+
+        <div class="login-container">
+
+            <div class="login-logo">
+                <img src="assets/img/logo-grupo.png" alt="Grupo Zanol & Thomaz">
             </div>
+
+            <div class="login-card">
+
+                <div class="login-header">
+                    <h1>AGENDA COMPRAS</h1>
+                    <p>Central Operacional</p>
+                </div>
+
+                <form id="loginForm" class="login-form">
+
+                    <div class="form-group">
+                        <label for="loginPassword">Senha</label>
+
+                        <input
+                            type="password"
+                            id="loginPassword"
+                            name="password"
+                            placeholder="Digite sua senha"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Entrar
+                    </button>
+
+                    <p id="loginError" class="login-error" aria-live="polite"></p>
+
+                </form>
+
+            </div>
+
+            <div class="login-footer">
+                <span>Agenda Compras</span>
+                <span>v2.0</span>
+            </div>
+
         </div>
-    </div>
 
-    <!-- MODAL DE DETALHE DO EVENTO (calendário) -->
-    <div class="detalhe-overlay" id="detalheEventoOverlay">
-        <div class="detalhe-modal">
-            <div class="detalhe-modal-header">
-                <span class="detalhe-modal-status" id="detalheStatusBadge"></span>
-                <button type="button" class="detalhe-modal-fechar" id="btnFecharDetalhe" aria-label="Fechar">✕</button>
-            </div>
-            <h3 id="detalheTitulo"></h3>
-            <dl class="detalhe-lista" id="detalheLista"></dl>
-            <div class="detalhe-modal-acoes" id="detalheAcoes">
-                <button type="button" class="btn-action btn-delete" id="btnExcluirDoDetalhe">🗑️ Excluir</button>
-                <button type="button" class="btn-add" id="btnEditarDoDetalhe">✏️ Editar</button>
-            </div>
-        </div>
-    </div>
+    </section>
 
-    <div class="app-container" id="appContainer">
-        <!-- BARRA LATERAL -->
-        <aside class="sidebar" id="sidebar">
+
+    <!-- =========================================================
+         SISTEMA
+    ========================================================== -->
+
+    <section id="appScreen" class="app-screen hidden">
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+
+        <aside id="sidebar" class="sidebar">
+
             <div class="sidebar-header">
-                <h2 class="sidebar-title">AGENDA DE COMPRAS</h2>
-                <button class="close-sidebar-btn" id="btnCloseSidebar" title="Fechar Menu">✕</button>
+
+                <div class="sidebar-logo">
+                    <img src="assets/img/logo-grupo.png" alt="Grupo Zanol & Thomaz">
+                </div>
+
+                <div class="sidebar-title">
+                    <strong>Agenda Compras</strong>
+                    <span>Central Operacional</span>
+                </div>
+
             </div>
-            
-            <div class="sidebar-menu">
-                <span class="menu-category-title">GRUPOS DE LOJAS (ESPELHO)</span>
-                
-                <div class="group-item" id="group-item-ZanolThomaz" data-grupo="Zanol & Thomaz">
-                    <button class="menu-btn">
-                        <span class="group-name">ZANOL & THOMAZ</span>
-                        <span class="arrow">▾</span>
-                    </button>
-                    <div class="subclass-list" id="sub-list-ZanolThomaz"></div>
-                </div>
 
-                <div class="group-item" id="group-item-Cella" data-grupo="Cella">
-                    <button class="menu-btn">
-                        <span class="group-name">CELLA</span>
-                        <span class="arrow">▾</span>
-                    </button>
-                    <div class="subclass-list" id="sub-list-Cella"></div>
-                </div>
 
-                <div class="group-item" id="group-item-Fenix" data-grupo="Fênix">
-                    <button class="menu-btn">
-                        <span class="group-name">FÊNIX</span>
-                        <span class="arrow">▾</span>
-                    </button>
-                    <div class="subclass-list" id="sub-list-Fenix"></div>
-                </div>
+            <nav class="sidebar-navigation">
 
-                <!-- Acesso à Área do Comprador -->
-                <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                    <span class="menu-category-title">ÁREA OPERACIONAL</span>
-                    <button id="btnMenuAreaComprador" class="menu-btn" style="width: 100%; text-align: left; background: rgba(255,255,255,0.05); margin-top: 5px; cursor: pointer;">
-                        <span class="group-name">👤 ÁREA DO COMPRADOR</span>
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    class="nav-item active"
+                    data-page="inicio"
+                    id="navInicio"
+                >
+                    <span class="nav-icon">⌂</span>
+                    <span>Início</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="nav-item"
+                    data-page="semana"
+                    id="navSemana"
+                >
+                    <span class="nav-icon">▦</span>
+                    <span>Semana</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="nav-item"
+                    data-page="procedimentos"
+                    id="navProcedimentos"
+                >
+                    <span class="nav-icon">☷</span>
+                    <span>Procedimentos</span>
+                </button>
+
+            </nav>
+
+
+            <div class="sidebar-footer">
+
+                <button
+                    type="button"
+                    id="btnLogout"
+                    class="nav-item logout-button"
+                >
+                    <span class="nav-icon">↪</span>
+                    <span>Sair</span>
+                </button>
+
             </div>
+
         </aside>
 
-        <!-- CONTAINER PRINCIPAL -->
+
+        <!-- =====================================================
+             CONTEÚDO PRINCIPAL
+        ====================================================== -->
+
         <main class="main-content">
-            
-            <!-- TELA 1: VISÃO GERAL / ESPELHO -->
-            <section id="telaGeral" class="app-screen">
-                <div class="content-header">
-                    <div class="header-title-group">
-                        <button class="hamburger-btn" id="btnToggleSidebar" title="Recolher / Expandir Menu">☰</button>
-                        <div>
-                            <h2 id="tituloAgenda">Agenda: ZANOL & THOMAZ</h2>
-                            <p>Visualização e exportação de cronogramas e faturamentos por categoria (Espelho para Supervisores e Fornecedores).</p>
-                        </div>
+
+
+            <!-- =================================================
+                 HEADER
+            ================================================== -->
+
+            <header class="topbar">
+
+                <div class="topbar-left">
+
+                    <button
+                        type="button"
+                        id="btnMobileMenu"
+                        class="mobile-menu-button"
+                        aria-label="Abrir menu"
+                    >
+                        ☰
+                    </button>
+
+                    <div>
+                        <span class="page-subtitle">Agenda Compras</span>
+                        <h2 id="pageTitle">Início</h2>
                     </div>
-                    
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <div class="view-toggle" role="group" aria-label="Alternar entre tabela e calendário">
-                            <button type="button" class="view-toggle-btn active" id="btnVisTabelaGeral">Tabela</button>
-                            <button type="button" class="view-toggle-btn" id="btnVisCalendarioGeral">Calendário</button>
-                        </div>
-                        <!-- Botão Limpar Filtros Geral Estático -->
-                        <button id="btnLimparFiltrosGeral" class="btn-secondary" style="padding: 10px 16px; font-size: 14px; cursor: pointer; background-color: #64748b; color: white; border: none; border-radius: 6px; font-weight: 500;">
-                            🧹 Limpar Filtros
-                        </button>
-                        <button class="btn-export" id="btnExportarExcel">Exportar Excel</button>
-                    </div>
+
                 </div>
 
-                <div class="table-container" id="containerTabelaGeral">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="sortable asc" data-column="data">Data</th>
-                                <th class="sortable" data-column="classificacao">Classificação</th>
-                                <th class="sortable" data-column="categoria">Categoria</th>
-                                <th class="sortable" data-column="fornecedor">Fornecedor</th>
-                                <th class="sortable" data-column="acaoComprador">Ação do Comprador</th>
-                                <th class="sortable" data-column="previsao">Previsão Faturamento</th>
-                                <th class="status-header">Status ▾</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaCorpo"></tbody>
-                    </table>
+
+                <div class="topbar-right">
+
+                    <div class="current-date" id="currentDate">
+                        Segunda-feira, 15 de setembro
+                    </div>
+
+                    <button
+                        type="button"
+                        id="btnNewRoutine"
+                        class="btn btn-primary"
+                    >
+                        + Nova Rotina
+                    </button>
+
                 </div>
 
-                <div class="calendario-container" id="containerCalendarioGeral" style="display: none;">
-                    <div id="calendarioGeral"></div>
+            </header>
+
+
+            <!-- =================================================
+                 PÁGINA: INÍCIO
+            ================================================== -->
+
+            <section
+                id="pageInicio"
+                class="page page-inicio active"
+                data-page-content="inicio"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+                        <span class="section-label">VISÃO DO DIA</span>
+
+                        <h1>
+                            Hoje •
+                            <span id="todayWeekday">Segunda-feira</span>
+                        </h1>
+
+                        <p>
+                            Estas são as demandas programadas para hoje.
+                        </p>
+                    </div>
+
                 </div>
+
+
+                <!-- =============================================
+                     INDICADORES
+                ============================================== -->
+
+                <div class="dashboard-metrics">
+
+                    <div class="metric-card">
+
+                        <span class="metric-label">
+                            Demandas de hoje
+                        </span>
+
+                        <strong
+                            id="todayTotal"
+                            class="metric-value"
+                        >
+                            2
+                        </strong>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <span class="metric-label">
+                            Concluídas
+                        </span>
+
+                        <strong
+                            id="todayCompleted"
+                            class="metric-value"
+                        >
+                            1
+                        </strong>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <span class="metric-label">
+                            Pendentes
+                        </span>
+
+                        <strong
+                            id="todayPending"
+                            class="metric-value"
+                        >
+                            1
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =============================================
+                     DEMANDAS DO DIA
+                ============================================== -->
+
+                <div class="section-header">
+
+                    <div>
+                        <h3>Demandas do dia</h3>
+                        <p>
+                            Clique em uma demanda para visualizar os detalhes.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="todayDemands"
+                    class="demand-grid"
+                >
+
+                    <!-- CARD DA DEMANDA -->
+
+                    <article
+                        class="demand-card completed"
+                        data-routine-id="curva-d"
+                    >
+
+                        <div class="demand-card-header">
+
+                            <div class="demand-status-icon">
+                                ✓
+                            </div>
+
+                            <span class="status-badge completed">
+                                Feito
+                            </span>
+
+                        </div>
+
+
+                        <div class="demand-card-body">
+
+                            <h3>Curva D</h3>
+
+                            <p>
+                                Mês Atual × Anterior
+                            </p>
+
+                        </div>
+
+
+                        <div class="demand-card-footer">
+
+                            <span class="priority-indicator high">
+                                Alta
+                            </span>
+
+                            <span class="demand-action">
+                                Ver detalhes →
+                            </span>
+
+                        </div>
+
+                    </article>
+
+
+                    <!-- OUTRA DEMANDA -->
+
+                    <article
+                        class="demand-card pending"
+                        data-routine-id="transferencias"
+                    >
+
+                        <div class="demand-card-header">
+
+                            <div class="demand-status-icon">
+                                ◷
+                            </div>
+
+                            <span class="status-badge pending">
+                                Pendente
+                            </span>
+
+                        </div>
+
+
+                        <div class="demand-card-body">
+
+                            <h3>Transferências</h3>
+
+                            <p>
+                                Segunda e Quinta
+                            </p>
+
+                        </div>
+
+
+                        <div class="demand-card-footer">
+
+                            <span class="priority-indicator medium">
+                                Média
+                            </span>
+
+                            <span class="demand-action">
+                                Ver detalhes →
+                            </span>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
             </section>
 
-            <!-- TELA 2: SELEÇÃO DE COMPRADORES -->
-            <section id="telaSelecaoComprador" class="app-screen selection-screen" style="display: none;">
-                <div class="content-header">
-                    <div class="header-title-group">
-                        <button class="hamburger-btn" id="btnToggleSidebar2" title="Recolher / Expandir Menu">☰</button>
-                        <div>
-                            <h2>Área do Comprador</h2>
-                            <p>Selecione o seu perfil para acessar o painel de lançamentos.</p>
-                        </div>
+
+            <!-- =================================================
+                 PÁGINA: SEMANA
+            ================================================== -->
+
+            <section
+                id="pageSemana"
+                class="page page-semana hidden"
+                data-page-content="semana"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <span class="section-label">
+                            VISÃO GERAL
+                        </span>
+
+                        <h1>
+                            Semana Operacional
+                        </h1>
+
+                        <p>
+                            Visualização geral de todas as suas demandas.
+                        </p>
+
                     </div>
+
                 </div>
 
-                <div class="selection-content">
-                    <h3 class="selection-subtitle">Quem está acessando?</h3>
-                    
-                    <div class="buyers-grid">
-                        <button class="buyer-card" data-comprador="Lucas">
-                            <div class="buyer-avatar">L</div>
-                            <span class="buyer-name">Lucas</span>
-                        </button>
-                        <button class="buyer-card" data-comprador="Gabriela">
-                            <div class="buyer-avatar">G</div>
-                            <span class="buyer-name">Gabriela</span>
-                        </button>
-                        <button class="buyer-card" data-comprador="Nayara">
-                            <div class="buyer-avatar">N</div>
-                            <span class="buyer-name">Nayara</span>
-                        </button>
-                        <button class="buyer-card" data-comprador="Brenda">
-                            <div class="buyer-avatar">B</div>
-                            <span class="buyer-name">Brenda</span>
-                        </button>
-                        <button class="buyer-card" data-comprador="Leandro">
-                            <div class="buyer-avatar">L</div>
-                            <span class="buyer-name">Leandro</span>
-                        </button>
-                        <button class="buyer-card" data-comprador="Matheus">
-                            <div class="buyer-avatar">M</div>
-                            <span class="buyer-name">Matheus</span>
-                        </button>
-                        <button class="buyer-card" data-comprador="Victôria">
-                            <div class="buyer-avatar">V</div>
-                            <span class="buyer-name">Victôria</span>
-                        </button>
-                        <button class="buyer-card" data-comprador="Tatiana">
-                            <div class="buyer-avatar">T</div>
-                            <span class="buyer-name">Tatiana</span>
-                        </button>
-                        <button class="buyer-card" data-comprador="Letícia">
-                            <div class="buyer-avatar">L</div>
-                            <span class="buyer-name">Letícia</span>
-                        </button>
-                        <button class="buyer-card" data-comprador="Caíro">
-                            <div class="buyer-avatar">C</div>
-                            <span class="buyer-name">Caíro</span>
-                        </button>
+
+                <!-- =============================================
+                     PROGRESSO DA SEMANA
+                ============================================== -->
+
+                <div class="weekly-progress-card">
+
+                    <div class="weekly-progress-header">
+
+                        <div>
+
+                            <span class="section-label">
+                                ACOMPANHAMENTO
+                            </span>
+
+                            <h3>
+                                Progresso da Semana
+                            </h3>
+
+                            <p>
+                                <span id="weekCompleted">
+                                    3
+                                </span>
+                                de
+                                <span id="weekTotal">
+                                    7
+                                </span>
+                                demandas concluídas
+                            </p>
+
+                        </div>
+
+                        <strong
+                            id="weekProgressPercent"
+                            class="progress-percentage"
+                        >
+                            43%
+                        </strong>
+
                     </div>
+
+
+                    <div class="progress-bar">
+
+                        <div
+                            id="weekProgressFill"
+                            class="progress-bar-fill"
+                            style="width: 43%;"
+                        ></div>
+
+                    </div>
+
+
+                    <div class="progress-days">
+
+                        <div class="progress-day completed">
+
+                            <span class="day-name">
+                                SEG
+                            </span>
+
+                            <span class="day-progress">
+                                2/2
+                            </span>
+
+                        </div>
+
+
+                        <div class="progress-day current">
+
+                            <span class="day-name">
+                                TER
+                            </span>
+
+                            <span class="day-progress">
+                                1/2
+                            </span>
+
+                        </div>
+
+
+                        <div class="progress-day">
+
+                            <span class="day-name">
+                                QUA
+                            </span>
+
+                            <span class="day-progress">
+                                0/1
+                            </span>
+
+                        </div>
+
+
+                        <div class="progress-day">
+
+                            <span class="day-name">
+                                QUI
+                            </span>
+
+                            <span class="day-progress">
+                                0/1
+                            </span>
+
+                        </div>
+
+
+                        <div class="progress-day">
+
+                            <span class="day-name">
+                                SEX
+                            </span>
+
+                            <span class="day-progress">
+                                0/1
+                            </span>
+
+                        </div>
+
+                    </div>
+
                 </div>
+
+
+                <!-- =============================================
+                     BLOCOS DA SEMANA
+                ============================================== -->
+
+                <div
+                    id="weeklyBoard"
+                    class="weekly-board"
+                >
+
+
+                    <!-- SEGUNDA -->
+
+                    <div
+                        class="day-column"
+                        data-day="segunda"
+                    >
+
+                        <div class="day-column-header">
+
+                            <div>
+
+                                <span class="day-name-large">
+                                    SEGUNDA
+                                </span>
+
+                                <span class="day-date">
+                                    15 SET
+                                </span>
+
+                            </div>
+
+                            <span class="day-count">
+                                2
+                            </span>
+
+                        </div>
+
+
+                        <div class="day-demands">
+
+                            <article
+                                class="weekly-demand-card completed"
+                                data-routine-id="curva-d"
+                            >
+
+                                <div class="weekly-card-top">
+
+                                    <span class="weekly-status-dot completed"></span>
+
+                                    <span class="status-badge completed">
+                                        Feito
+                                    </span>
+
+                                </div>
+
+                                <h3>Curva D</h3>
+
+                            </article>
+
+
+                            <article
+                                class="weekly-demand-card pending"
+                                data-routine-id="transferencias"
+                            >
+
+                                <div class="weekly-card-top">
+
+                                    <span class="weekly-status-dot pending"></span>
+
+                                    <span class="status-badge pending">
+                                        Pendente
+                                    </span>
+
+                                </div>
+
+                                <h3>Transferências</h3>
+
+                            </article>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- TERÇA -->
+
+                    <div
+                        class="day-column"
+                        data-day="terca"
+                    >
+
+                        <div class="day-column-header">
+
+                            <div>
+
+                                <span class="day-name-large">
+                                    TERÇA
+                                </span>
+
+                                <span class="day-date">
+                                    16 SET
+                                </span>
+
+                            </div>
+
+                            <span class="day-count">
+                                1
+                            </span>
+
+                        </div>
+
+
+                        <div class="day-demands">
+
+                            <article
+                                class="weekly-demand-card pending"
+                                data-routine-id="custo-medio"
+                            >
+
+                                <div class="weekly-card-top">
+
+                                    <span class="weekly-status-dot pending"></span>
+
+                                    <span class="status-badge pending">
+                                        Pendente
+                                    </span>
+
+                                </div>
+
+                                <h3>
+                                    Custo Médio
+                                </h3>
+
+                            </article>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- QUARTA -->
+
+                    <div
+                        class="day-column"
+                        data-day="quarta"
+                    >
+
+                        <div class="day-column-header">
+
+                            <div>
+
+                                <span class="day-name-large">
+                                    QUARTA
+                                </span>
+
+                                <span class="day-date">
+                                    17 SET
+                                </span>
+
+                            </div>
+
+                            <span class="day-count">
+                                0
+                            </span>
+
+                        </div>
+
+
+                        <div class="day-demands empty-day">
+
+                            <div class="empty-state">
+                                Nenhuma demanda
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- QUINTA -->
+
+                    <div
+                        class="day-column"
+                        data-day="quinta"
+                    >
+
+                        <div class="day-column-header">
+
+                            <div>
+
+                                <span class="day-name-large">
+                                    QUINTA
+                                </span>
+
+                                <span class="day-date">
+                                    18 SET
+                                </span>
+
+                            </div>
+
+                            <span class="day-count">
+                                1
+                            </span>
+
+                        </div>
+
+
+                        <div class="day-demands">
+
+                            <article
+                                class="weekly-demand-card pending"
+                                data-routine-id="transferencias"
+                            >
+
+                                <div class="weekly-card-top">
+
+                                    <span class="weekly-status-dot pending"></span>
+
+                                    <span class="status-badge pending">
+                                        Pendente
+                                    </span>
+
+                                </div>
+
+                                <h3>
+                                    Transferências
+                                </h3>
+
+                            </article>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SEXTA -->
+
+                    <div
+                        class="day-column"
+                        data-day="sexta"
+                    >
+
+                        <div class="day-column-header">
+
+                            <div>
+
+                                <span class="day-name-large">
+                                    SEXTA
+                                </span>
+
+                                <span class="day-date">
+                                    19 SET
+                                </span>
+
+                            </div>
+
+                            <span class="day-count">
+                                1
+                            </span>
+
+                        </div>
+
+
+                        <div class="day-demands">
+
+                            <article
+                                class="weekly-demand-card pending"
+                                data-routine-id="revisoes"
+                            >
+
+                                <div class="weekly-card-top">
+
+                                    <span class="weekly-status-dot pending"></span>
+
+                                    <span class="status-badge pending">
+                                        Pendente
+                                    </span>
+
+                                </div>
+
+                                <h3>
+                                    Revisões
+                                </h3>
+
+                            </article>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
             </section>
 
-            <!-- TELA 3: PAINEL EXCLUSIVO DO COMPRADOR -->
-            <section id="telaPainelComprador" class="app-screen" style="display: none;">
-                <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <button id="btnVoltarSelecao" class="btn-secondary" style="padding: 6px 12px; font-size: 13px; cursor: pointer; width: fit-content;">← Voltar à Seleção de Compradores</button>
-                        <h2 id="tituloPainelComprador">Painel do Comprador</h2>
-                        <p>Gerencie, cadastre, edite e remova os lançamentos do grupo selecionado.</p>
+
+            <!-- =================================================
+                 PÁGINA: PROCEDIMENTOS
+            ================================================== -->
+
+            <section
+                id="pageProcedimentos"
+                class="page page-procedimentos hidden"
+                data-page-content="procedimentos"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <span class="section-label">
+                            BASE DE CONHECIMENTO
+                        </span>
+
+                        <h1>
+                            Procedimentos
+                        </h1>
+
+                        <p>
+                            Wiki das suas rotinas e processos.
+                        </p>
+
                     </div>
 
-                    <!-- Botões alinhados no topo à direita, igual à Tela Geral -->
-                    <div class="acoes-topo-tabela" style="display: flex; align-items: center; gap: 10px;">
-                        <div class="view-toggle" role="group" aria-label="Alternar entre tabela e calendário">
-                            <button type="button" class="view-toggle-btn active" id="btnVisTabelaComprador">Tabela</button>
-                            <button type="button" class="view-toggle-btn" id="btnVisCalendarioComprador">Calendário</button>
+                    <button
+                        type="button"
+                        id="btnNewProcedure"
+                        class="btn btn-primary"
+                    >
+                        + Novo Procedimento
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="procedureList"
+                    class="procedure-grid"
+                >
+
+                    <article
+                        class="procedure-card"
+                        data-routine-id="curva-d"
+                    >
+
+                        <div class="procedure-card-header">
+
+                            <span class="procedure-category">
+                                ESTOQUE
+                            </span>
+
+                            <span class="priority-indicator high">
+                                Alta
+                            </span>
+
                         </div>
-                        <button id="btnLimparFiltrosComprador" class="btn-secondary" style="padding: 10px 16px; font-size: 14px; cursor: pointer; background-color: #64748b; color: white; border: none; border-radius: 6px; font-weight: 500;">
-                            🧹 Limpar Filtros
+
+                        <h3>
+                            Curva D
+                        </h3>
+
+                        <p>
+                            Procedimento para análise de produtos parados.
+                        </p>
+
+                        <button
+                            type="button"
+                            class="procedure-link"
+                        >
+                            Abrir procedimento →
                         </button>
-                        <button id="btnExportarComprador" class="btn-export">Exportar Excel</button>
-                    </div>
-                </div>
 
-                <!-- Abas dos Grupos de Lojas -->
-                <div class="buyer-groups-tabs" style="display: flex; gap: 10px; margin: 20px 0;">
-                    <button class="group-tab-btn active" data-grupo="Zanol & Thomaz" style="padding: 8px 16px; cursor: pointer;">Zanol & Thomaz</button>
-                    <button class="group-tab-btn" data-grupo="Cella" style="padding: 8px 16px; cursor: pointer;">Cella</button>
-                    <button class="group-tab-btn" data-grupo="Fênix" style="padding: 8px 16px; cursor: pointer;">Fênix</button>
-                </div>
+                    </article>
 
-                <!-- Formulário do Comprador -->
-                <div class="form-container" id="formAgendaComprador">
-                    <input type="hidden" id="editIndexComprador" value="-1">
-                    
-                    <div class="form-group">
-                        <label>Data</label>
-                        <input type="date" id="inputDataComprador" required>
-                    </div>
 
-                    <div class="form-group">
-                        <label>Classificação</label>
-                        <select id="inputClassificacaoComprador" required>
-                            <option value="">Selecione...</option>
-                        </select>
-                    </div>
+                    <article
+                        class="procedure-card"
+                        data-routine-id="custo-medio"
+                    >
 
-                    <div class="form-group">
-                        <label>Categoria</label>
-                        <input type="text" id="inputCategoriaComprador" placeholder="Nome da categoria..." required>
-                    </div>
+                        <div class="procedure-card-header">
 
-                    <div class="form-group">
-                        <label>Fornecedor</label>
-                        <input type="text" id="inputFornecedorComprador" placeholder="Nome do fornecedor..." required>
-                    </div>
+                            <span class="procedure-category">
+                                CUSTOS
+                            </span>
 
-                    <div class="form-group">
-                        <label>Ação do Comprador</label>
-                        <select id="inputAcaoComprador" required>
-                            <option value="">Selecione...</option>
-                            <option value="Levantamento de necessidade e cotação">Levantamento de necessidade e cotação</option>
-                            <option value="Negociação e Emissão do Pedido (OC)">Negociação e Emissão do Pedido (OC)</option>
-                        </select>
-                    </div>
+                            <span class="priority-indicator medium">
+                                Média
+                            </span>
 
-                    <div class="form-group">
-                        <label>Previsão Faturamento</label>
-                        <select id="inputPrevisaoComprador" required>
-                            <option value="">Selecione...</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="inputStatusComprador" required>
-                            <option value="AGENDADO">Agendado</option>
-                            <option value="EXECUTADO">Executado</option>
-                            <option value="EXECUTADO PARCIALMENTE">Executado Parcialmente</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" id="grupoRecorrencia">
-                        <label>Repetição</label>
-                        <div class="recorrencia-controles">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="inputRecorrenteComprador">
-                                🔁 Repetir mensalmente
-                            </label>
-                            <select id="inputHorizonteRecorrenciaComprador" disabled>
-                                <option value="3">3 meses</option>
-                                <option value="6">6 meses</option>
-                                <option value="12" selected>12 meses</option>
-                                <option value="24">24 meses</option>
-                            </select>
                         </div>
-                    </div>
 
-                    <button class="btn-add" id="btnSalvarAgendamentoComprador">Salvar Registro</button>
+                        <h3>
+                            Custo Médio
+                        </h3>
+
+                        <p>
+                            Procedimento para análise de custo médio por classificação.
+                        </p>
+
+                        <button
+                            type="button"
+                            class="procedure-link"
+                        >
+                            Abrir procedimento →
+                        </button>
+
+                    </article>
+
                 </div>
 
-                <!-- Tabela da Agenda do Comprador -->
-                <div class="table-container" id="containerTabelaComprador" style="margin-top: 20px;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="sortable asc" data-column="data">Data</th>
-                                <th class="sortable" data-column="classificacao">Classificação</th>
-                                <th class="sortable" data-column="categoria">Categoria</th>
-                                <th class="sortable" data-column="fornecedor">Fornecedor</th>
-                                <th class="sortable" data-column="acaoComprador">Ação do Comprador</th>
-                                <th class="sortable" data-column="previsao">Previsão Faturamento</th>
-                                <th class="status-header">Status ▾</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaCorpoComprador"></tbody>
-                    </table>
-                </div>
-
-                <div class="calendario-container" id="containerCalendarioComprador" style="display: none; margin-top: 20px;">
-                    <div id="calendarioComprador"></div>
-                </div>
             </section>
 
         </main>
+
+    </section>
+
+
+    <!-- =========================================================
+         MODAL — DETALHES DA DEMANDA
+    ========================================================== -->
+
+    <div
+        id="demandModal"
+        class="modal-overlay hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="demandModalTitle"
+    >
+
+        <div class="modal demand-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <span class="section-label">
+                        DETALHES DA DEMANDA
+                    </span>
+
+                    <h2 id="demandModalTitle">
+                        Curva D
+                    </h2>
+
+                    <p id="demandModalSubtitle">
+                        Segunda-feira • Mês Atual × Anterior
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="modal-close"
+                    id="closeDemandModal"
+                    aria-label="Fechar"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="modal-content">
+
+                <div class="detail-grid">
+
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+                            Descrição
+                        </span>
+
+                        <p id="detailDescription">
+                            Análise do estoque parado comparando o mês atual com o mês anterior.
+                        </p>
+
+                    </div>
+
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+                            Distribuição da tarefa
+                        </span>
+
+                        <p id="detailDistribution">
+                            Segunda-feira
+                        </p>
+
+                    </div>
+
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+                            Período dos dados
+                        </span>
+
+                        <p id="detailPeriod">
+                            Mês Atual × Anterior
+                        </p>
+
+                    </div>
+
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+                            Prioridade
+                        </span>
+
+                        <span
+                            id="detailPriority"
+                            class="priority-badge high"
+                        >
+                            Alta
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =============================================
+                     PROCEDIMENTO / WIKI
+                ============================================== -->
+
+                <div class="procedure-section">
+
+                    <div class="procedure-section-header">
+
+                        <div>
+
+                            <span class="detail-label">
+                                PROCEDIMENTO
+                            </span>
+
+                            <h3>
+                                Wiki da rotina
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="detailProcedure"
+                        class="procedure-content"
+                    >
+
+                        <div class="procedure-step">
+
+                            <span class="step-number">
+                                01
+                            </span>
+
+                            <span>
+                                Exportar relatório do BI
+                            </span>
+
+                        </div>
+
+
+                        <div class="procedure-step">
+
+                            <span class="step-number">
+                                02
+                            </span>
+
+                            <span>
+                                Comparar com o mês anterior
+                            </span>
+
+                        </div>
+
+
+                        <div class="procedure-step">
+
+                            <span class="step-number">
+                                03
+                            </span>
+
+                            <span>
+                                Verificar aumento por classificação
+                            </span>
+
+                        </div>
+
+
+                        <div class="procedure-step">
+
+                            <span class="step-number">
+                                04
+                            </span>
+
+                            <span>
+                                Enviar resumo para a gestão
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    id="btnToggleStatus"
+                    class="btn btn-secondary"
+                >
+                    Marcar como concluída
+                </button>
+
+                <button
+                    type="button"
+                    id="btnEditDemand"
+                    class="btn btn-primary"
+                >
+                    Editar demanda
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
 
-    <script type="module" src="./assets/js/script.js"></script>
+
+    <!-- =========================================================
+         MODAL — NOVA ROTINA
+    ========================================================== -->
+
+    <div
+        id="routineModal"
+        class="modal-overlay hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="routineModalTitle"
+    >
+
+        <div class="modal routine-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <span class="section-label">
+                        CADASTRO
+                    </span>
+
+                    <h2 id="routineModalTitle">
+                        Nova Rotina
+                    </h2>
+
+                    <p>
+                        Cadastro rápido para a Agenda Compras.
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="modal-close"
+                    id="closeRoutineModal"
+                    aria-label="Fechar"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="routineForm" class="routine-form">
+
+                <!-- DESCRIÇÃO -->
+
+                <div class="form-group">
+
+                    <label for="routineDescription">
+                        Descrição
+                    </label>
+
+                    <input
+                        type="text"
+                        id="routineDescription"
+                        name="description"
+                        placeholder="Ex.: Relatório de Compras Emergenciais"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- DISTRIBUIÇÃO -->
+
+                <div class="form-group">
+
+                    <label for="routineDistribution">
+                        Distribuição da tarefa
+                    </label>
+
+                    <select
+                        id="routineDistribution"
+                        name="distribution"
+                        required
+                    >
+
+                        <option value="">
+                            Selecione
+                        </option>
+
+                        <option value="diario">
+                            Diariamente
+                        </option>
+
+                        <option value="segunda">
+                            Segunda-feira
+                        </option>
+
+                        <option value="terca">
+                            Terça-feira
+                        </option>
+
+                        <option value="quarta">
+                            Quarta-feira
+                        </option>
+
+                        <option value="quinta">
+                            Quinta-feira
+                        </option>
+
+                        <option value="sexta">
+                            Sexta-feira
+                        </option>
+
+                        <option value="segunda-quinta">
+                            Segunda e Quinta
+                        </option>
+
+                        <option value="solicitacao">
+                            Sob solicitação
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- DIA PRINCIPAL -->
+
+                <div class="form-group">
+
+                    <label for="routineDay">
+                        Dia da rotina
+                    </label>
+
+                    <select
+                        id="routineDay"
+                        name="day"
+                        required
+                    >
+
+                        <option value="">
+                            Selecione
+                        </option>
+
+                        <option value="segunda">
+                            Segunda-feira
+                        </option>
+
+                        <option value="terca">
+                            Terça-feira
+                        </option>
+
+                        <option value="quarta">
+                            Quarta-feira
+                        </option>
+
+                        <option value="quinta">
+                            Quinta-feira
+                        </option>
+
+                        <option value="sexta">
+                            Sexta-feira
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- PERÍODO -->
+
+                <div class="form-group">
+
+                    <label for="routinePeriod">
+                        Período dos dados
+                    </label>
+
+                    <select
+                        id="routinePeriod"
+                        name="period"
+                        required
+                    >
+
+                        <option value="">
+                            Selecione
+                        </option>
+
+                        <option value="atual">
+                            Mês Atual
+                        </option>
+
+                        <option value="atual-anterior">
+                            Mês Atual × Anterior
+                        </option>
+
+                        <option value="90-dias">
+                            Últimos 90 dias
+                        </option>
+
+                        <option value="90-atual">
+                            90 dias × Mês Atual
+                        </option>
+
+                        <option value="personalizado">
+                            Personalizado
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- PRIORIDADE -->
+
+                <fieldset class="form-group priority-group">
+
+                    <legend>
+                        Prioridade
+                    </legend>
+
+
+                    <label class="radio-option">
+
+                        <input
+                            type="radio"
+                            name="priority"
+                            value="alta"
+                            checked
+                        >
+
+                        <span>
+                            Alta
+                        </span>
+
+                    </label>
+
+
+                    <label class="radio-option">
+
+                        <input
+                            type="radio"
+                            name="priority"
+                            value="media"
+                        >
+
+                        <span>
+                            Média
+                        </span>
+
+                    </label>
+
+
+                    <label class="radio-option">
+
+                        <input
+                            type="radio"
+                            name="priority"
+                            value="baixa"
+                        >
+
+                        <span>
+                            Baixa
+                        </span>
+
+                    </label>
+
+                </fieldset>
+
+
+                <!-- PROCEDIMENTO / WIKI -->
+
+                <div class="form-group">
+
+                    <label for="routineProcedure">
+                        Procedimento — Wiki
+                    </label>
+
+                    <textarea
+                        id="routineProcedure"
+                        name="procedure"
+                        rows="7"
+                        placeholder="Descreva o passo a passo..."
+                    ></textarea>
+
+                    <small>
+                        Esse conteúdo ficará disponível nos detalhes da demanda.
+                    </small>
+
+                </div>
+
+
+                <!-- OBSERVAÇÕES -->
+
+                <div class="form-group">
+
+                    <label for="routineNotes">
+                        Observações
+                    </label>
+
+                    <textarea
+                        id="routineNotes"
+                        name="notes"
+                        rows="4"
+                        placeholder="Informações adicionais, cuidados ou observações..."
+                    ></textarea>
+
+                </div>
+
+
+                <!-- AÇÕES -->
+
+                <div class="form-actions">
+
+                    <button
+                        type="button"
+                        id="btnCancelRoutine"
+                        class="btn btn-secondary"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Salvar Rotina
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         MODAL — CONFIRMAÇÃO
+    ========================================================== -->
+
+    <div
+        id="confirmModal"
+        class="modal-overlay hidden"
+        role="dialog"
+        aria-modal="true"
+    >
+
+        <div class="modal confirm-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <span class="section-label">
+                        CONFIRMAÇÃO
+                    </span>
+
+                    <h2>
+                        Confirmar ação
+                    </h2>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="modal-close"
+                    id="closeConfirmModal"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="modal-content">
+
+                <p id="confirmMessage">
+                    Deseja realmente marcar esta demanda como concluída?
+                </p>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    id="btnCancelConfirm"
+                    class="btn btn-secondary"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    id="btnConfirmAction"
+                    class="btn btn-primary"
+                >
+                    Confirmar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         TOAST / NOTIFICAÇÕES
+    ========================================================== -->
+
+    <div
+        id="toastContainer"
+        class="toast-container"
+        aria-live="polite"
+        aria-atomic="true"
+    >
+    </div>
+
+
+    <!-- =========================================================
+         JAVASCRIPT
+    ========================================================== -->
+
+<script src="assets/js/script.js"></script>
+
 </body>
 </html>

@@ -1,1074 +1,1724 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+// ============================================================
+// AGENDA COMPRAS V2
+// JavaScript principal
+// ============================================================
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDIjE6Kcrf7Pi3NrUnEKyMEq0KAqNAg0xI",
-    authDomain: "agenda-5d102.firebaseapp.com",
-    projectId: "agenda-5d102",
-    storageBucket: "agenda-5d102.firebasestorage.app",
-    messagingSenderId: "927330632677",
-    appId: "1:927330632677:web:11a1ea3bd27f9868b9a50c",
-    measurementId: "G-00Y8Q58N2X"
+// ============================================================
+// CONFIGURAÇÕES
+// ============================================================
+
+const CONFIG = {
+    senhaAdmin: "198024"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
 
-// Domínio fictício usado só para transformar "Lucas" em um login válido do
-// Firebase Auth (lucas@agenda-compras.local). Nenhum e-mail é enviado a ele.
-const DOMINIO_AUTH = "agenda-compras.local";
+// ============================================================
+// DADOS TEMPORÁRIOS
+// ============================================================
+// Estes dados serão substituídos pelo Firebase posteriormente.
+// A estrutura já está preparada para isso.
 
-const estado = {
-    telaAtual: 'geral',
-    empresaAtual: 'Zanol & Thomaz',
-    classificacaoFiltroAtual: '', 
-    compradorLogado: '',
-    compradorPendente: '',
-    empresaCompradorAtual: 'Zanol & Thomaz',
-    agendamentos: [],
-    agendasGerais: {},
-    agendasCompradores: {}
-};
+let rotinas = [
+    {
+        id: "curva-d",
+        descricao: "Curva D",
+        distribuicao: "Segunda-feira",
+        dia: "segunda",
+        periodo: "Mês Atual × Anterior",
+        prioridade: "alta",
+        status: "feito",
+        procedimento: [
+            "Exportar relatório do BI",
+            "Comparar com o mês anterior",
+            "Verificar aumento por classificação",
+            "Enviar resumo para a gestão"
+        ],
+        observacoes: "Conferir as classificações com maior aumento."
+    },
 
-const classificacoes = [
-    "CONVENIENCIA", "DERMOCOSMETICOS", "FRALDAS E LEITES", "GENERICOS", 
-    "NOSSAS MARCAS", "PBM", "PERFUMARIA", "PERFUMES", "PROPAGADO", "SIMILARES", "SUPLEMENTO", "VAREJO"
+    {
+        id: "transferencias",
+        descricao: "Transferências",
+        distribuicao: "Segunda e Quinta",
+        dia: "segunda",
+        periodo: "Mês Atual",
+        prioridade: "media",
+        status: "pendente",
+        procedimento: [
+            "Verificar transferências pendentes",
+            "Conferir origem e destino",
+            "Validar divergências",
+            "Atualizar o controle"
+        ],
+        observacoes: ""
+    },
+
+    {
+        id: "custo-medio",
+        descricao: "Custo Médio por Classificação",
+        distribuicao: "Terça-feira",
+        dia: "terca",
+        periodo: "90 dias × Mês Atual",
+        prioridade: "alta",
+        status: "pendente",
+        procedimento: [
+            "Atualizar relatório",
+            "Filtrar período de 90 dias",
+            "Comparar com o mês atual",
+            "Verificar divergências relevantes"
+        ],
+        observacoes: ""
+    },
+
+    {
+        id: "revisoes",
+        descricao: "Revisões",
+        distribuicao: "Sexta-feira",
+        dia: "sexta",
+        periodo: "Semana Atual",
+        prioridade: "baixa",
+        status: "pendente",
+        procedimento: [
+            "Revisar demandas da semana",
+            "Conferir pendências",
+            "Atualizar os registros",
+            "Preparar fechamento semanal"
+        ],
+        observacoes: ""
+    }
 ];
 
-// Cada tela tem seu próprio calendário, criado e renderizado só na primeira
-// vez que a pessoa muda pra visão de calendário nela (FullCalendar não mede
-// bem o tamanho de um container que nasce com display: none).
-let calendarioGeralInstancia = null;
-let calendarioCompradorInstancia = null;
 
-function sanitizarId(nome) {
-    return nome
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-zA-Z0-9]/g, '');
-}
+// ============================================================
+// ELEMENTOS PRINCIPAIS
+// ============================================================
 
-// Transforma "Letícia" em "leticia@agenda-compras.local" reaproveitando a
-// mesma lógica de remoção de acentos que sanitizarId() já usa nos ids do menu.
-function emailComprador(nome) {
-    return `${sanitizarId(nome).toLowerCase()}@${DOMINIO_AUTH}`;
-}
+const loginScreen = document.getElementById("loginScreen");
+const appScreen = document.getElementById("appScreen");
 
-// Escapa texto livre (categoria, fornecedor etc.) antes de ir para innerHTML,
-// pra fechar a brecha de XSS armazenado em campos digitados pelo comprador.
-function escapeHtml(valor) {
-    const div = document.createElement('div');
-    div.textContent = valor === null || valor === undefined ? '' : String(valor);
-    return div.innerHTML;
-}
+const loginForm = document.getElementById("loginForm");
+const loginPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
 
-function obterEstadoAgendaAtual() {
-    const chaveAgenda = `${estado.empresaAtual}__${estado.classificacaoFiltroAtual || 'GERAL'}`;
-    if (!estado.agendasGerais[chaveAgenda]) {
-        estado.agendasGerais[chaveAgenda] = {
-            statusFiltro: '',
-            ordenacao: { coluna: 'data', asc: true },
-            visualizacao: 'tabela'
-        };
-    }
-    return estado.agendasGerais[chaveAgenda];
-}
+const pageTitle = document.getElementById("pageTitle");
 
-function obterEstadoCompradorAtual() {
-    const chaveComprador = `${estado.compradorLogado}__${estado.empresaCompradorAtual}`;
-    if (!estado.agendasCompradores[chaveComprador]) {
-        estado.agendasCompradores[chaveComprador] = {
-            statusFiltro: '',
-            ordenacao: { coluna: 'data', asc: true },
-            visualizacao: 'tabela'
-        };
-    }
-    return estado.agendasCompradores[chaveComprador];
-}
+const todayWeekday = document.getElementById("todayWeekday");
+const currentDate = document.getElementById("currentDate");
+
+const todayDemands = document.getElementById("todayDemands");
+
+const todayTotal = document.getElementById("todayTotal");
+const todayCompleted = document.getElementById("todayCompleted");
+const todayPending = document.getElementById("todayPending");
+
+const weekCompleted = document.getElementById("weekCompleted");
+const weekTotal = document.getElementById("weekTotal");
+const weekProgressPercent = document.getElementById("weekProgressPercent");
+const weekProgressFill = document.getElementById("weekProgressFill");
+
+const weeklyBoard = document.getElementById("weeklyBoard");
+
+const demandModal = document.getElementById("demandModal");
+const routineModal = document.getElementById("routineModal");
+const confirmModal = document.getElementById("confirmModal");
+
+const routineForm = document.getElementById("routineForm");
+
+
+// ============================================================
+// ESTADO DO SISTEMA
+// ============================================================
+
+let rotinaSelecionada = null;
+let acaoConfirmacao = null;
+
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    inicializarSelectsEListas();
-    configurarEventosGerais();
-    configurarOrdenacaoCabecalhos();
-    configurarFiltroStatus();
-    configurarAuth();
-    configurarModalDetalheEvento();
-    selecionarGrupo('Zanol & Thomaz');
 
-    onSnapshot(collection(db, "agendamentos"), (snapshot) => {
-        estado.agendamentos = [];
-        snapshot.forEach((docSnap) => {
-            estado.agendamentos.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        renderizarTelasAtuais();
-    });
+    configurarDataAtual();
+    configurarLogin();
+    configurarNavegacao();
+    configurarModais();
+    configurarFormularioRotina();
+    configurarBotoesStatus();
+    configurarCards();
+    verificarSessao();
+
 });
 
-function configurarEventosGerais() {
-    document.getElementById('btnToggleSidebar')?.addEventListener('click', toggleSidebar);
-    document.getElementById('btnToggleSidebar2')?.addEventListener('click', toggleSidebar);
-    document.getElementById('btnCloseSidebar')?.addEventListener('click', toggleSidebar);
-    document.getElementById('sidebarOverlay')?.addEventListener('click', toggleSidebar);
-    
-    // Botões de Exportação Excel (Geral e Painel do Comprador)
-    document.getElementById('btnExportarExcel')?.addEventListener('click', exportarExcel);
-    document.getElementById('btnExportarComprador')?.addEventListener('click', exportarExcel);
 
-    // Botão Limpar Filtros Geral (Integrado de forma estática e otimizada)
-    document.getElementById('btnLimparFiltrosGeral')?.addEventListener('click', () => {
-        const agendaAtual = obterEstadoAgendaAtual();
-        agendaAtual.statusFiltro = '';
-        agendaAtual.ordenacao = { coluna: 'data', asc: true };
-        sincronizarSetasOrdenacaoVisuais();
-        renderizarTelasAtuais();
-    });
+// ============================================================
+// LOGIN
+// ============================================================
 
-    // Botão Limpar Filtros Comprador
-    document.getElementById('btnLimparFiltrosComprador')?.addEventListener('click', () => {
-        const compradorAtual = obterEstadoCompradorAtual();
-        compradorAtual.statusFiltro = '';
-        compradorAtual.ordenacao = { coluna: 'data', asc: true };
-        sincronizarSetasOrdenacaoVisuais();
-        renderizarTelasAtuais();
-    });
+function configurarLogin() {
 
-    document.getElementById('btnMenuAreaComprador')?.addEventListener('click', async () => {
-        if (auth.currentUser) await signOut(auth);
-        estado.telaAtual = 'selecao-comprador';
-        mudarTela('selecao-comprador');
-    });
+    if (!loginForm) return;
 
-    // Clicar no cartão não entra mais direto — abre o modal de senha.
-    // Quem confirma a navegação pro painel é confirmarLogin(), só depois
-    // que o Firebase Auth validar a senha desse comprador.
-    document.querySelectorAll('.buyer-card').forEach(card => {
-        card.addEventListener('click', () => {
-            abrirModalLogin(card.getAttribute('data-comprador'));
-        });
-    });
+    loginForm.addEventListener("submit", (event) => {
 
-    document.getElementById('btnVoltarSelecao')?.addEventListener('click', async () => {
-        if (auth.currentUser) await signOut(auth);
-        estado.telaAtual = 'selecao-comprador';
-        mudarTela('selecao-comprador');
-    });
+        event.preventDefault();
 
-    document.querySelectorAll('.group-tab-btn').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.group-tab-btn').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            estado.empresaCompradorAtual = tab.getAttribute('data-grupo');
-            
-            limparFormularioComprador();
-            sincronizarSetasOrdenacaoVisuais();
-            renderizarTabelaComprador();
-        });
-    });
+        const senha = loginPassword.value.trim();
 
-    document.getElementById('btnSalvarAgendamentoComprador')?.addEventListener('click', salvarAgendamentoComprador);
+        if (senha === CONFIG.senhaAdmin) {
 
-    document.getElementById('btnVisTabelaGeral')?.addEventListener('click', () => alternarVisualizacao('geral', 'tabela'));
-    document.getElementById('btnVisCalendarioGeral')?.addEventListener('click', () => alternarVisualizacao('geral', 'calendario'));
-    document.getElementById('btnVisTabelaComprador')?.addEventListener('click', () => alternarVisualizacao('painel-comprador', 'tabela'));
-    document.getElementById('btnVisCalendarioComprador')?.addEventListener('click', () => alternarVisualizacao('painel-comprador', 'calendario'));
+            sessionStorage.setItem("agendaComprasAuth", "true");
 
-    document.getElementById('inputRecorrenteComprador')?.addEventListener('change', (e) => {
-        const select = document.getElementById('inputHorizonteRecorrenciaComprador');
-        if (select) select.disabled = !e.target.checked;
-    });
+            loginError.textContent = "";
 
-    document.querySelectorAll('.menu-btn').forEach(btn => {
-        const parentGroup = btn.closest('.group-item');
-        if (parentGroup) {
-            btn.addEventListener('click', () => {
-                const grupoNome = parentGroup.getAttribute('data-grupo');
-                toggleGrupoAccordion(grupoNome);
-            });
+            abrirSistema();
+
+        } else {
+
+            loginError.textContent = "Senha incorreta.";
+
+            loginPassword.value = "";
+
+            loginPassword.focus();
+
         }
+
     });
 
-    document.getElementById('tabelaCorpoComprador')?.addEventListener('click', (e) => {
-        const btnEdit = e.target.closest('.btn-edit');
-        const btnDelete = e.target.closest('.btn-delete');
-        if (btnEdit) editarAgendamentoComprador(btnEdit.dataset.id);
-        if (btnDelete) excluirAgendamentoComprador(btnDelete.dataset.id);
-    });
 }
 
-function configurarAuth() {
-    // Se a sessão cair (senha expirada, sign-out em outra aba, etc.) enquanto
-    // a pessoa está no painel, ela volta pra seleção em vez de ficar numa
-    // tela que não tem mais permissão de gravar nada.
-    onAuthStateChanged(auth, (user) => {
-        if (!user && estado.telaAtual === 'painel-comprador') {
-            estado.compradorLogado = '';
-            estado.telaAtual = 'selecao-comprador';
-            mudarTela('selecao-comprador');
-        }
-    });
 
-    document.getElementById('btnCancelarLogin')?.addEventListener('click', fecharModalLogin);
-    document.getElementById('btnConfirmarLogin')?.addEventListener('click', confirmarLogin);
+// ============================================================
+// VERIFICA SESSÃO
+// ============================================================
 
-    document.getElementById('inputSenhaComprador')?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') confirmarLogin();
-    });
+function verificarSessao() {
 
-    // Clicar fora do cartão do modal fecha, igual ao overlay da sidebar.
-    document.getElementById('loginOverlay')?.addEventListener('click', (e) => {
-        if (e.target.id === 'loginOverlay') fecharModalLogin();
-    });
-}
+    const autenticado =
+        sessionStorage.getItem("agendaComprasAuth") === "true";
 
-function abrirModalLogin(nome) {
-    estado.compradorPendente = nome;
-
-    const titulo = document.getElementById('loginModalTitulo');
-    if (titulo) titulo.innerText = `Entrar como ${nome}`;
-
-    const inputSenha = document.getElementById('inputSenhaComprador');
-    if (inputSenha) inputSenha.value = '';
-
-    esconderErroLogin();
-    document.getElementById('loginOverlay')?.classList.add('show');
-    inputSenha?.focus();
-}
-
-function fecharModalLogin() {
-    document.getElementById('loginOverlay')?.classList.remove('show');
-    estado.compradorPendente = '';
-}
-
-function mostrarErroLogin(mensagem) {
-    const erroEl = document.getElementById('loginModalErro');
-    if (!erroEl) return;
-    erroEl.textContent = mensagem;
-    erroEl.style.display = 'block';
-}
-
-function esconderErroLogin() {
-    const erroEl = document.getElementById('loginModalErro');
-    if (erroEl) erroEl.style.display = 'none';
-}
-
-async function confirmarLogin() {
-    const nome = estado.compradorPendente;
-    const senha = document.getElementById('inputSenhaComprador')?.value || '';
-
-    if (!nome) return;
-    if (!senha) {
-        mostrarErroLogin('Digite sua senha.');
-        return;
+    if (autenticado) {
+        abrirSistema();
+    } else {
+        mostrarLogin();
     }
 
-    const btnConfirmar = document.getElementById('btnConfirmarLogin');
-    if (btnConfirmar) {
-        btnConfirmar.disabled = true;
-        btnConfirmar.textContent = 'Entrando...';
+}
+
+
+// ============================================================
+// ABRIR SISTEMA
+// ============================================================
+
+function abrirSistema() {
+
+    if (loginScreen) {
+        loginScreen.classList.add("hidden");
     }
 
-    try {
-        await signInWithEmailAndPassword(auth, emailComprador(nome), senha);
+    if (appScreen) {
+        appScreen.classList.remove("hidden");
+    }
 
-        estado.compradorLogado = nome;
-        estado.telaAtual = 'painel-comprador';
-        estado.empresaCompradorAtual = 'Zanol & Thomaz';
+    atualizarInterface();
 
-        document.querySelectorAll('.group-tab-btn').forEach((t, idx) => {
-            t.classList.toggle('active', idx === 0);
+}
+
+
+// ============================================================
+// MOSTRAR LOGIN
+// ============================================================
+
+function mostrarLogin() {
+
+    if (appScreen) {
+        appScreen.classList.add("hidden");
+    }
+
+    if (loginScreen) {
+        loginScreen.classList.remove("hidden");
+    }
+
+}
+
+
+// ============================================================
+// LOGOUT
+// ============================================================
+
+function fazerLogout() {
+
+    sessionStorage.removeItem("agendaComprasAuth");
+
+    fecharTodosModais();
+
+    mostrarLogin();
+
+    if (loginForm) {
+        loginForm.reset();
+    }
+
+}
+
+
+// ============================================================
+// NAVEGAÇÃO
+// ============================================================
+
+function configurarNavegacao() {
+
+    const botoesMenu = document.querySelectorAll(".nav-item[data-page]");
+
+    botoesMenu.forEach((botao) => {
+
+        botao.addEventListener("click", () => {
+
+            const pagina = botao.dataset.page;
+
+            abrirPagina(pagina);
+
         });
 
-        fecharModalLogin();
-        mudarTela('painel-comprador');
-    } catch (erro) {
-        console.error('Erro ao entrar:', erro);
-        mostrarErroLogin('Senha incorreta. Confira com quem cadastrou seu acesso.');
-    } finally {
-        if (btnConfirmar) {
-            btnConfirmar.disabled = false;
-            btnConfirmar.textContent = 'Entrar';
-        }
+    });
+
+
+    const botaoLogout = document.getElementById("btnLogout");
+
+    if (botaoLogout) {
+
+        botaoLogout.addEventListener("click", fazerLogout);
+
     }
-}
 
-// Monta o conteúdo do modal com createElement/textContent (não innerHTML)
-// porque esses dados vêm do Firestore — mesmo cuidado contra XSS da tabela.
-function abrirModalDetalheEvento(item, permiteEdicao) {
-    const overlay = document.getElementById('detalheEventoOverlay');
-    const badge = document.getElementById('detalheStatusBadge');
-    const titulo = document.getElementById('detalheTitulo');
-    const lista = document.getElementById('detalheLista');
-    const acoes = document.getElementById('detalheAcoes');
-    if (!overlay || !badge || !titulo || !lista || !acoes) return;
 
-    badge.textContent = item.status || '';
-    badge.className = `detalhe-modal-status ${obterClasseStatus(item.status)}`;
-    titulo.textContent = item.fornecedor || item.categoria || 'Agendamento';
+    const botaoMenuMobile =
+        document.getElementById("btnMobileMenu");
 
-    lista.innerHTML = '';
-    const campos = [
-        ['Categoria', item.categoria],
-        ['Classificação', item.classificacao || 'GERAL'],
-        ['Ação do comprador', item.acaoComprador],
-        ['Previsão de faturamento', item.previsao],
-        ['Data', formatarData(item.data)]
-    ];
-    if (item.recorrente) campos.push(['Repetição', '🔁 Parte de uma série mensal']);
+    if (botaoMenuMobile) {
 
-    campos.forEach(([rotulo, valor]) => {
-        const dt = document.createElement('dt');
-        dt.textContent = rotulo;
-        const dd = document.createElement('dd');
-        dd.textContent = valor || '—';
-        lista.appendChild(dt);
-        lista.appendChild(dd);
-    });
+        botaoMenuMobile.addEventListener("click", () => {
 
-    acoes.style.display = permiteEdicao ? 'flex' : 'none';
-    overlay.dataset.eventoId = item.id;
-    overlay.classList.add('show');
-}
+            const sidebar = document.getElementById("sidebar");
 
-function fecharModalDetalheEvento() {
-    document.getElementById('detalheEventoOverlay')?.classList.remove('show');
-}
-
-function configurarModalDetalheEvento() {
-    document.getElementById('btnFecharDetalhe')?.addEventListener('click', fecharModalDetalheEvento);
-
-    document.getElementById('detalheEventoOverlay')?.addEventListener('click', (e) => {
-        if (e.target.id === 'detalheEventoOverlay') fecharModalDetalheEvento();
-    });
-
-    document.getElementById('btnEditarDoDetalhe')?.addEventListener('click', () => {
-        const id = document.getElementById('detalheEventoOverlay')?.dataset.eventoId;
-        fecharModalDetalheEvento();
-        if (id) editarAgendamentoComprador(id);
-    });
-
-    document.getElementById('btnExcluirDoDetalhe')?.addEventListener('click', () => {
-        const id = document.getElementById('detalheEventoOverlay')?.dataset.eventoId;
-        fecharModalDetalheEvento();
-        if (id) excluirAgendamentoComprador(id);
-    });
-}
-
-function configurarFiltroStatus() {
-    document.querySelectorAll('th.status-header').forEach(th => {
-        if (!th.style.position) {
-            th.style.position = 'relative';
-        }
-
-        th.addEventListener('click', (e) => {
-            e.stopPropagation();
-            
-            let dropdown = th.querySelector('.status-filter-dropdown');
-            if (dropdown) {
-                dropdown.remove();
-                return;
+            if (sidebar) {
+                sidebar.classList.toggle("open");
             }
 
-            document.querySelectorAll('.status-filter-dropdown').forEach(el => el.remove());
+        });
 
-            dropdown = document.createElement('div');
-            dropdown.className = 'status-filter-dropdown';
-            dropdown.innerHTML = `
-                <div class="status-option" data-status="">Todos os Status</div>
-                <div class="status-option" data-status="AGENDADO">AGENDADO</div>
-                <div class="status-option" data-status="EXECUTADO">EXECUTADO</div>
-                <div class="status-option" data-status="EXECUTADO PARCIALMENTE">EXECUTADO PARCIALMENTE</div>
+    }
+
+}
+
+
+function abrirPagina(pagina) {
+
+    const paginas =
+        document.querySelectorAll("[data-page-content]");
+
+    const botoes =
+        document.querySelectorAll(".nav-item[data-page]");
+
+
+    paginas.forEach((elemento) => {
+
+        const pertence = elemento.dataset.pageContent === pagina;
+
+        elemento.classList.toggle("hidden", !pertence);
+        elemento.classList.toggle("active", pertence);
+
+    });
+
+
+    botoes.forEach((botao) => {
+
+        botao.classList.toggle(
+            "active",
+            botao.dataset.page === pagina
+        );
+
+    });
+
+
+    const titulos = {
+        inicio: "Início",
+        semana: "Semana",
+        procedimentos: "Procedimentos"
+    };
+
+    if (pageTitle) {
+        pageTitle.textContent =
+            titulos[pagina] || "Agenda Compras";
+    }
+
+
+    atualizarInterface();
+
+
+    // Fecha o menu mobile depois de navegar
+    const sidebar = document.getElementById("sidebar");
+
+    if (sidebar) {
+        sidebar.classList.remove("open");
+    }
+
+}
+
+
+// ============================================================
+// DATA E DIA DA SEMANA
+// ============================================================
+
+function obterDiaAtual() {
+
+    const hoje = new Date();
+
+    const dias = [
+        "domingo",
+        "segunda",
+        "terca",
+        "quarta",
+        "quinta",
+        "sexta",
+        "sabado"
+    ];
+
+    return dias[hoje.getDay()];
+
+}
+
+
+function obterNomeDiaAtual() {
+
+    const hoje = new Date();
+
+    const dias = [
+        "Domingo",
+        "Segunda-feira",
+        "Terça-feira",
+        "Quarta-feira",
+        "Quinta-feira",
+        "Sexta-feira",
+        "Sábado"
+    ];
+
+    return dias[hoje.getDay()];
+
+}
+
+
+function configurarDataAtual() {
+
+    const hoje = new Date();
+
+    const nomeDia = obterNomeDiaAtual();
+
+    const dataFormatada =
+        hoje.toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "long"
+        });
+
+
+    if (todayWeekday) {
+        todayWeekday.textContent = nomeDia;
+    }
+
+
+    if (currentDate) {
+
+        currentDate.textContent =
+            `${nomeDia}, ${dataFormatada}`;
+
+    }
+
+}
+
+
+// ============================================================
+// DEMANDAS DO DIA
+// ============================================================
+
+function obterDemandasDoDia() {
+
+    const diaAtual = obterDiaAtual();
+
+    return rotinas.filter((rotina) => {
+
+        if (rotina.dia === diaAtual) {
+            return true;
+        }
+
+        // Rotinas segunda e quinta
+        if (
+            rotina.distribuicao === "Segunda e Quinta" &&
+            (diaAtual === "segunda" || diaAtual === "quinta")
+        ) {
+            return true;
+        }
+
+        // Rotinas diárias
+        if (
+            rotina.distribuicao === "Diariamente"
+        ) {
+            return true;
+        }
+
+        return false;
+
+    });
+
+}
+
+
+// ============================================================
+// RENDERIZA DEMANDAS DE HOJE
+// ============================================================
+
+function renderizarDemandasDoDia() {
+
+    if (!todayDemands) return;
+
+    const demandas = obterDemandasDoDia();
+
+    todayDemands.innerHTML = "";
+
+
+    if (demandas.length === 0) {
+
+        todayDemands.innerHTML = `
+            <div class="empty-state-card">
+                <div class="empty-icon">✓</div>
+
+                <h3>Nenhuma demanda para hoje</h3>
+
+                <p>
+                    Não há rotinas programadas para este dia.
+                </p>
+            </div>
+        `;
+
+    } else {
+
+        demandas.forEach((rotina) => {
+
+            todayDemands.appendChild(
+                criarCardDemanda(rotina)
+            );
+
+        });
+
+    }
+
+
+    atualizarIndicadoresHoje(demandas);
+
+}
+
+
+// ============================================================
+// CRIA CARD DA DEMANDA
+// ============================================================
+
+function criarCardDemanda(rotina) {
+
+    const card = document.createElement("article");
+
+    card.className =
+        `demand-card ${rotina.status}`;
+
+    card.dataset.routineId = rotina.id;
+
+
+    const statusTexto =
+        rotina.status === "feito"
+            ? "Feito"
+            : "Pendente";
+
+
+    const statusIcon =
+        rotina.status === "feito"
+            ? "✓"
+            : "◷";
+
+
+    const prioridadeTexto =
+        formatarPrioridade(rotina.prioridade);
+
+
+    card.innerHTML = `
+
+        <div class="demand-card-header">
+
+            <div class="demand-status-icon">
+                ${statusIcon}
+            </div>
+
+            <span class="status-badge ${rotina.status}">
+                ${statusTexto}
+            </span>
+
+        </div>
+
+
+        <div class="demand-card-body">
+
+            <h3>
+                ${escapeHTML(rotina.descricao)}
+            </h3>
+
+            <p>
+                ${escapeHTML(rotina.periodo)}
+            </p>
+
+        </div>
+
+
+        <div class="demand-card-footer">
+
+            <span class="priority-indicator ${rotina.prioridade}">
+                ${prioridadeTexto}
+            </span>
+
+            <span class="demand-action">
+                Ver detalhes →
+            </span>
+
+        </div>
+
+    `;
+
+
+    card.addEventListener("click", () => {
+
+        abrirDetalhesRotina(rotina.id);
+
+    });
+
+
+    return card;
+
+}
+
+
+// ============================================================
+// INDICADORES DE HOJE
+// ============================================================
+
+function atualizarIndicadoresHoje(demandas) {
+
+    const total = demandas.length;
+
+    const concluidas =
+        demandas.filter(
+            (item) => item.status === "feito"
+        ).length;
+
+    const pendentes = total - concluidas;
+
+
+    if (todayTotal) {
+        todayTotal.textContent = total;
+    }
+
+    if (todayCompleted) {
+        todayCompleted.textContent = concluidas;
+    }
+
+    if (todayPending) {
+        todayPending.textContent = pendentes;
+    }
+
+}
+
+
+// ============================================================
+// SEMANA
+// ============================================================
+
+function renderizarSemana() {
+
+    if (!weeklyBoard) return;
+
+    const colunas =
+        weeklyBoard.querySelectorAll(".day-column");
+
+
+    const mapaDias = {
+        segunda: "segunda",
+        terca: "terca",
+        quarta: "quarta",
+        quinta: "quinta",
+        sexta: "sexta"
+    };
+
+
+    colunas.forEach((coluna) => {
+
+        const dia = coluna.dataset.day;
+
+        if (!dia) return;
+
+
+        const area =
+            coluna.querySelector(".day-demands");
+
+        const contador =
+            coluna.querySelector(".day-count");
+
+        if (!area) return;
+
+
+        area.innerHTML = "";
+
+
+        const demandas =
+            rotinas.filter((rotina) => {
+
+                if (rotina.dia === dia) {
+                    return true;
+                }
+
+
+                if (
+                    rotina.distribuicao === "Segunda e Quinta" &&
+                    (
+                        dia === "segunda" ||
+                        dia === "quinta"
+                    )
+                ) {
+                    return true;
+                }
+
+
+                if (
+                    rotina.distribuicao === "Diariamente"
+                ) {
+                    return true;
+                }
+
+
+                return false;
+
+            });
+
+
+        if (contador) {
+            contador.textContent = demandas.length;
+        }
+
+
+        if (demandas.length === 0) {
+
+            area.innerHTML = `
+                <div class="empty-state">
+                    Nenhuma demanda
+                </div>
             `;
 
-            dropdown.querySelectorAll('.status-option').forEach(opt => {
-                opt.addEventListener('click', (ev) => {
-                    ev.stopPropagation();
-                    const statusSelecionado = opt.getAttribute('data-status');
-                    
-                    if (estado.telaAtual === 'geral') {
-                        const agendaAtual = obterEstadoAgendaAtual();
-                        agendaAtual.statusFiltro = statusSelecionado;
-                    } else if (estado.telaAtual === 'painel-comprador') {
-                        const compradorAtual = obterEstadoCompradorAtual();
-                        compradorAtual.statusFiltro = statusSelecionado;
-                    }
+            return;
 
-                    dropdown.remove();
-                    renderizarTelasAtuais();
-                });
-            });
+        }
 
-            th.appendChild(dropdown);
+
+        demandas.forEach((rotina) => {
+
+            const card =
+                criarCardSemanal(rotina);
+
+            area.appendChild(card);
+
         });
+
     });
 
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.status-filter-dropdown').forEach(el => el.remove());
-    });
+
+    destacarDiaAtual();
+
 }
 
-function configurarOrdenacaoCabecalhos() {
-    document.querySelectorAll('th.sortable').forEach(th => {
-        th.addEventListener('click', () => {
-            const coluna = th.getAttribute('data-column');
-            
-            let objOrdenacao;
-            if (estado.telaAtual === 'geral') {
-                objOrdenacao = obterEstadoAgendaAtual().ordenacao;
-            } else if (estado.telaAtual === 'painel-comprador') {
-                objOrdenacao = obterEstadoCompradorAtual().ordenacao;
-            }
 
-            if (objOrdenacao.coluna === coluna) {
-                objOrdenacao.asc = !objOrdenacao.asc;
-            } else {
-                objOrdenacao.coluna = coluna;
-                objOrdenacao.asc = true;
-            }
+// ============================================================
+// CARD SEMANAL
+// ============================================================
 
-            sincronizarSetasOrdenacaoVisuais();
-            renderizarTelasAtuais();
-        });
-    });
-}
+function criarCardSemanal(rotina) {
 
-function inicializarSelectsEListas() {
-    const selectClassComprador = document.getElementById('inputClassificacaoComprador');
-    if (selectClassComprador) {
-        selectClassComprador.innerHTML = '<option value="">Selecione...</option>';
-        classificacoes.forEach(classe => {
-            const opt = document.createElement('option');
-            opt.value = classe;
-            opt.textContent = classe;
-            selectClassComprador.appendChild(opt);
-        });
-    }
+    const card =
+        document.createElement("article");
 
-    const selPrev = document.getElementById('inputPrevisaoComprador');
-    if (selPrev) {
-        selPrev.innerHTML = '<option value="">Selecione...</option>';
-        for(let i = 1; i <= 45; i++) {
-            const opt = document.createElement('option');
-            opt.value = i + " Dias";
-            opt.textContent = i + " Dias";
-            selPrev.appendChild(opt);
-        }
-    }
+    card.className =
+        `weekly-demand-card ${rotina.status}`;
 
-    const grupos = ['Zanol & Thomaz', 'Cella', 'Fênix'];
-    grupos.forEach(grupo => {
-        const idSanitizado = sanitizarId(grupo);
-        const container = document.getElementById(`sub-list-${idSanitizado}`);
-        
-        if (container) {
-            container.innerHTML = '';
-            classificacoes.forEach(classe => {
-                const btn = document.createElement('button');
-                btn.className = 'subclass-btn';
-                btn.textContent = classe;
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    estado.telaAtual = 'geral';
-                    mudarTela('geral');
-                    selecionarSubcategoria(grupo, classe, btn);
-                });
-                container.appendChild(btn);
-            });
-        }
-    });
-}
+    card.dataset.routineId =
+        rotina.id;
 
-function toggleSidebar() {
-    const appContainer = document.getElementById('appContainer');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
 
-    if (window.innerWidth <= 992) {
-        sidebar.classList.toggle('mobile-open');
-        overlay.classList.toggle('show');
-    } else {
-        appContainer.classList.toggle('sidebar-collapsed');
-    }
-}
+    const statusTexto =
+        rotina.status === "feito"
+            ? "Feito"
+            : "Pendente";
 
-function toggleGrupoAccordion(nomeGrupo) {
-    const idSanitizado = sanitizarId(nomeGrupo);
-    const itemElement = document.getElementById(`group-item-${idSanitizado}`);
-    if (!itemElement) return;
-    
-    const estaAberto = itemElement.classList.contains('open');
 
-    if (estaAberto) {
-        itemElement.classList.remove('open');
-    } else {
-        document.querySelectorAll('.group-item').forEach(el => el.classList.remove('open'));
-        itemElement.classList.add('open');
-        estado.telaAtual = 'geral';
-        mudarTela('geral');
-        selecionarGrupo(nomeGrupo);
-    }
-}
+    card.innerHTML = `
 
-function selecionarGrupo(nomeEmpresa) {
-    estado.empresaAtual = nomeEmpresa;
-    estado.classificacaoFiltroAtual = ''; 
+        <div class="weekly-card-top">
 
-    document.querySelectorAll('.group-item').forEach(item => {
-        const grupoItem = item.getAttribute('data-grupo');
-        const btnGrupo = item.querySelector('.menu-btn');
+            <span class="weekly-status-dot ${rotina.status}">
+            </span>
 
-        if (grupoItem === nomeEmpresa) {
-            item.classList.add('active-group');
-            btnGrupo?.classList.add('active-main');
-            item.querySelectorAll('.subclass-btn').forEach(b => b.classList.remove('active'));
-        } else {
-            item.classList.remove('active-group');
-            btnGrupo?.classList.remove('active-main');
-        }
+            <span class="status-badge ${rotina.status}">
+                ${statusTexto}
+            </span>
+
+        </div>
+
+        <h3>
+            ${escapeHTML(rotina.descricao)}
+        </h3>
+
+    `;
+
+
+    card.addEventListener("click", () => {
+
+        abrirDetalhesRotina(rotina.id);
+
     });
 
-    const titulo = document.getElementById('tituloAgenda');
-    if (titulo) titulo.innerText = `Agenda: ${nomeEmpresa.toUpperCase()}`;
-    
-    sincronizarSetasOrdenacaoVisuais();
-    renderizarTabelaGeral();
+
+    return card;
+
 }
 
-function selecionarSubcategoria(grupo, classificacao, btnElement) {
-    estado.empresaAtual = grupo;
-    estado.classificacaoFiltroAtual = classificacao;
 
-    document.querySelectorAll('.group-item').forEach(item => {
-        const grupoItem = item.getAttribute('data-grupo');
-        const btnGrupo = item.querySelector('.menu-btn');
+// ============================================================
+// DESTACAR DIA ATUAL
+// ============================================================
 
-        if (grupoItem === grupo) {
-            item.classList.add('active-group');
-            btnGrupo?.classList.add('active-main');
-            item.querySelectorAll('.subclass-btn').forEach(b => {
-                if (b === btnElement) b.classList.add('active');
-                else b.classList.remove('active');
-            });
-        } else {
-            item.classList.remove('active-group');
-            btnGrupo?.classList.remove('active-main');
-            item.querySelectorAll('.subclass-btn').forEach(b => b.classList.remove('active'));
-        }
+function destacarDiaAtual() {
+
+    const diaAtual = obterDiaAtual();
+
+    const colunas =
+        document.querySelectorAll(".day-column");
+
+
+    colunas.forEach((coluna) => {
+
+        coluna.classList.toggle(
+            "current-day",
+            coluna.dataset.day === diaAtual
+        );
+
     });
 
-    const titulo = document.getElementById('tituloAgenda');
-    if (titulo) titulo.innerText = `Agenda: ${grupo.toUpperCase()} — ${classificacao}`;
-    
-    sincronizarSetasOrdenacaoVisuais();
-    renderizarTabelaGeral();
 }
 
-function sincronizarSetasOrdenacaoVisuais() {
-    let colunaAtiva = '';
-    let ascAtivo = true;
-    let modoVisualizacao = 'tabela';
 
-    if (estado.telaAtual === 'geral') {
-        const configAgenda = obterEstadoAgendaAtual();
-        colunaAtiva = configAgenda.ordenacao.coluna;
-        ascAtivo = configAgenda.ordenacao.asc;
-        modoVisualizacao = configAgenda.visualizacao;
-    } else if (estado.telaAtual === 'painel-comprador') {
-        const configComprador = obterEstadoCompradorAtual();
-        colunaAtiva = configComprador.ordenacao.coluna;
-        ascAtivo = configComprador.ordenacao.asc;
-        modoVisualizacao = configComprador.visualizacao;
+// ============================================================
+// PROGRESSO DA SEMANA
+// ============================================================
+
+function atualizarProgressoSemana() {
+
+    const total =
+        rotinas.length;
+
+    const concluidas =
+        rotinas.filter(
+            (rotina) => rotina.status === "feito"
+        ).length;
+
+
+    let percentual = 0;
+
+
+    if (total > 0) {
+
+        percentual =
+            Math.round(
+                (concluidas / total) * 100
+            );
+
     }
 
-    const tabelaAtiva = document.querySelector(`#${estado.telaAtual === 'geral' ? 'tabelaCorpo' : 'tabelaCorpoComprador'}`)?.closest('table');
-    if (tabelaAtiva) {
-        tabelaAtiva.querySelectorAll('th.sortable').forEach(t => {
-            t.classList.remove('asc', 'desc');
-            if (t.getAttribute('data-column') === colunaAtiva) {
-                t.classList.add(ascAtivo ? 'asc' : 'desc');
-            }
-        });
+
+    if (weekCompleted) {
+        weekCompleted.textContent = concluidas;
     }
 
-    // Reflete o modo (tabela/calendário) salvo nessa agenda nos botões do topo.
-    if (estado.telaAtual === 'geral' || estado.telaAtual === 'painel-comprador') {
-        const prefixo = estado.telaAtual === 'geral' ? 'Geral' : 'Comprador';
-        document.getElementById(`btnVisTabela${prefixo}`)?.classList.toggle('active', modoVisualizacao !== 'calendario');
-        document.getElementById(`btnVisCalendario${prefixo}`)?.classList.toggle('active', modoVisualizacao === 'calendario');
+
+    if (weekTotal) {
+        weekTotal.textContent = total;
     }
+
+
+    if (weekProgressPercent) {
+        weekProgressPercent.textContent =
+            `${percentual}%`;
+    }
+
+
+    if (weekProgressFill) {
+
+        weekProgressFill.style.width =
+            `${percentual}%`;
+
+    }
+
 }
 
-function mudarTela(nomeTela) {
-    document.getElementById('telaGeral').style.display = (nomeTela === 'geral') ? 'block' : 'none';
-    document.getElementById('telaSelecaoComprador').style.display = (nomeTela === 'selecao-comprador') ? 'block' : 'none';
-    document.getElementById('telaPainelComprador').style.display = (nomeTela === 'painel-comprador') ? 'block' : 'none';
 
-    if (nomeTela === 'geral') {
-        sincronizarSetasOrdenacaoVisuais();
-        renderizarTabelaGeral();
-    } else if (nomeTela === 'painel-comprador') {
-        const tituloPainel = document.getElementById('tituloPainelComprador');
-        if (tituloPainel) tituloPainel.innerText = `Painel: ${estado.compradorLogado} — Grupo: ${estado.empresaCompradorAtual}`;
-        limparFormularioComprador();
-        sincronizarSetasOrdenacaoVisuais();
-        renderizarTabelaComprador();
+// ============================================================
+// MODAL DE DETALHES
+// ============================================================
+
+function abrirDetalhesRotina(id) {
+
+    const rotina =
+        rotinas.find(
+            (item) => item.id === id
+        );
+
+
+    if (!rotina) return;
+
+
+    rotinaSelecionada = rotina;
+
+
+    const title =
+        document.getElementById("demandModalTitle");
+
+    const subtitle =
+        document.getElementById("demandModalSubtitle");
+
+    const description =
+        document.getElementById("detailDescription");
+
+    const distribution =
+        document.getElementById("detailDistribution");
+
+    const period =
+        document.getElementById("detailPeriod");
+
+    const priority =
+        document.getElementById("detailPriority");
+
+    const procedure =
+        document.getElementById("detailProcedure");
+
+    const toggleStatus =
+        document.getElementById("btnToggleStatus");
+
+
+    if (title) {
+        title.textContent =
+            rotina.descricao;
     }
+
+
+    if (subtitle) {
+
+        subtitle.textContent =
+            `${rotina.distribuicao} • ${rotina.periodo}`;
+
+    }
+
+
+    if (description) {
+
+        description.textContent =
+            rotina.descricao;
+
+    }
+
+
+    if (distribution) {
+
+        distribution.textContent =
+            rotina.distribuicao;
+
+    }
+
+
+    if (period) {
+
+        period.textContent =
+            rotina.periodo;
+
+    }
+
+
+    if (priority) {
+
+        priority.textContent =
+            formatarPrioridade(rotina.prioridade);
+
+        priority.className =
+            `priority-badge ${rotina.prioridade}`;
+
+    }
+
+
+    if (procedure) {
+
+        renderizarProcedimento(
+            rotina.procedimento,
+            procedure
+        );
+
+    }
+
+
+    if (toggleStatus) {
+
+        toggleStatus.textContent =
+            rotina.status === "feito"
+                ? "Marcar como pendente"
+                : "Marcar como concluída";
+
+    }
+
+
+    abrirModal(demandModal);
+
 }
 
-function renderizarTelasAtuais() {
-    if (estado.telaAtual === 'geral') {
-        renderizarTabelaGeral();
-    } else if (estado.telaAtual === 'painel-comprador') {
-        renderizarTabelaComprador();
-    }
-}
 
-function renderizarTabelaGenerica(containerId, dados, options = { showActions: false }) {
-    const tbody = document.getElementById(containerId);
-    if (!tbody) return;
-    tbody.innerHTML = '';
+// ============================================================
+// PROCEDIMENTO / WIKI
+// ============================================================
 
-    let configOrdenacao = estado.telaAtual === 'geral' ? obterEstadoAgendaAtual().ordenacao : obterEstadoCompradorAtual().ordenacao;
-    const { coluna, asc } = configOrdenacao;
+function renderizarProcedimento(
+    procedimento,
+    container
+) {
 
-    const dadosOrdenados = [...dados].sort((a, b) => {
-        let valorA = a[coluna];
-        let valorB = b[coluna];
+    if (!container) return;
 
-        if (coluna === 'data') {
-            valorA = a.data ? new Date(a.data).getTime() : 0;
-            valorB = b.data ? new Date(b.data).getTime() : 0;
-        } else if (coluna === 'previsao') {
-            valorA = parseInt(a.previsao) || 0;
-            valorB = parseInt(b.previsao) || 0;
-        } else {
-            valorA = (valorA || '').toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            valorB = (valorB || '').toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        }
 
-        if (valorA < valorB) return asc ? -1 : 1;
-        if (valorA > valorB) return asc ? 1 : -1;
-        return 0;
-    });
+    container.innerHTML = "";
 
-    if (dadosOrdenados.length === 0) {
-        const tr = document.createElement('tr');
-        const colSpanCount = options.showActions ? 8 : 7;
-        tr.innerHTML = `<td colspan="${colSpanCount}" style="text-align: center; color: var(--text-light);">Nenhum registro encontrado.</td>`;
-        tbody.appendChild(tr);
-        return;
-    }
 
-    const fragment = document.createDocumentFragment();
-    dadosOrdenados.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${escapeHtml(formatarData(item.data))}</td>
-            <td><strong>${escapeHtml(item.classificacao || 'GERAL')}</strong></td>
-            <td>${escapeHtml(item.categoria)}${item.recorrente ? ' 🔁' : ''}</td>
-            <td>${escapeHtml(item.fornecedor)}</td>
-            <td>${escapeHtml(item.acaoComprador)}</td>
-            <td>${escapeHtml(item.previsao)}</td>
-            <td><span class="flag ${obterClasseStatus(item.status)}">${escapeHtml(item.status)}</span></td>
-            ${options.showActions ? `
-                <td>
-                    <button class="btn-action btn-edit" data-id="${item.id}">Editar</button>
-                    <button class="btn-action btn-delete" data-id="${item.id}">Remover</button>
-                </td>
-            ` : ''}
+    if (
+        !procedimento ||
+        procedimento.length === 0
+    ) {
+
+        container.innerHTML = `
+            <div class="procedure-empty">
+                Nenhum procedimento cadastrado.
+            </div>
         `;
-        fragment.appendChild(tr);
+
+        return;
+
+    }
+
+
+    procedimento.forEach((passo, index) => {
+
+        const elemento =
+            document.createElement("div");
+
+        elemento.className =
+            "procedure-step";
+
+
+        const numero =
+            String(index + 1).padStart(2, "0");
+
+
+        elemento.innerHTML = `
+
+            <span class="step-number">
+                ${numero}
+            </span>
+
+            <span>
+                ${escapeHTML(passo)}
+            </span>
+
+        `;
+
+
+        container.appendChild(elemento);
+
     });
-    tbody.appendChild(fragment);
+
 }
 
-function configuracaoBaseCalendario() {
-    return {
-        locale: 'pt-br',
-        initialView: 'dayGridMonth',
-        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
-        height: 650,
-        dayMaxEvents: 3,
-        events: [],
-        eventDidMount: (info) => {
-            // Tooltip nativo (hover) com o resumo do lançamento — útil
-            // principalmente no espelho, que não tem clique de edição.
-            const p = info.event.extendedProps;
-            const partes = [info.event.title];
-            if (p.classificacao) partes.push(p.classificacao);
-            if (p.acaoComprador) partes.push(p.acaoComprador);
-            if (p.previsao) partes.push(`Previsão: ${p.previsao}`);
-            info.el.setAttribute('title', partes.join(' • '));
+
+// ============================================================
+// BOTÕES DE STATUS
+// ============================================================
+
+function configurarBotoesStatus() {
+
+    const botao =
+        document.getElementById("btnToggleStatus");
+
+
+    if (!botao) return;
+
+
+    botao.addEventListener("click", () => {
+
+        if (!rotinaSelecionada) return;
+
+
+        const novoStatus =
+            rotinaSelecionada.status === "feito"
+                ? "pendente"
+                : "feito";
+
+
+        rotinaSelecionada.status =
+            novoStatus;
+
+
+        fecharModal(demandModal);
+
+        atualizarInterface();
+
+        mostrarToast(
+            novoStatus === "feito"
+                ? "Demanda concluída."
+                : "Demanda voltou para pendente."
+        );
+
+    });
+
+}
+
+
+// ============================================================
+// FORMULÁRIO DE NOVA ROTINA
+// ============================================================
+
+function configurarFormularioRotina() {
+
+    if (!routineForm) return;
+
+
+    routineForm.addEventListener(
+        "submit",
+        (event) => {
+
+            event.preventDefault();
+
+
+            const formData =
+                new FormData(routineForm);
+
+
+            const descricao =
+                formData.get("description");
+
+
+            const distribuicao =
+                formData.get("distribution");
+
+
+            const dia =
+                formData.get("day");
+
+
+            const periodo =
+                formData.get("period");
+
+
+            const prioridade =
+                formData.get("priority");
+
+
+            const procedimentoTexto =
+                formData.get("procedure");
+
+
+            const observacoes =
+                formData.get("notes");
+
+
+            const procedimento =
+                procedimentoTexto
+                    ? procedimentoTexto
+                        .split("\n")
+                        .map((linha) => linha.trim())
+                        .filter(Boolean)
+                    : [];
+
+
+            const novaRotina = {
+
+                id:
+                    gerarIdUnico(),
+
+                descricao,
+
+                distribuicao:
+                    formatarDistribuicao(
+                        distribuicao
+                    ),
+
+                dia,
+
+                periodo:
+                    formatarPeriodo(
+                        periodo
+                    ),
+
+                prioridade,
+
+                status:
+                    "pendente",
+
+                procedimento,
+
+                observacoes
+
+            };
+
+
+            rotinas.push(
+                novaRotina
+            );
+
+
+            routineForm.reset();
+
+
+            fecharModal(
+                routineModal
+            );
+
+
+            atualizarInterface();
+
+
+            mostrarToast(
+                "Rotina cadastrada com sucesso."
+            );
+
         }
-    };
+    );
+
 }
 
-function corPorStatus(status) {
-    const variavel = status === 'EXECUTADO' ? '--status-executado'
-        : status === 'EXECUTADO PARCIALMENTE' ? '--status-parcial'
-        : '--status-agendado';
-    return getComputedStyle(document.documentElement).getPropertyValue(variavel).trim();
+
+// ============================================================
+// NOVA ROTINA
+// ============================================================
+
+function configurarBotoesNovaRotina() {
+
+    const botao =
+        document.getElementById("btnNewRoutine");
+
+
+    if (botao) {
+
+        botao.addEventListener(
+            "click",
+            () => abrirModal(routineModal)
+        );
+
+    }
+
+
+    const botaoProcedimento =
+        document.getElementById("btnNewProcedure");
+
+
+    if (botaoProcedimento) {
+
+        botaoProcedimento.addEventListener(
+            "click",
+            () => abrirModal(routineModal)
+        );
+
+    }
+
 }
 
-function atualizarEventosCalendario(calendario, dados) {
-    calendario.removeAllEvents();
-    dados.forEach(item => {
-        if (!item.data) return;
-        const tituloBase = item.fornecedor || item.categoria || 'Agendamento';
-        calendario.addEvent({
-            id: item.id,
-            title: item.recorrente ? `🔁 ${tituloBase}` : tituloBase,
-            start: item.data,
-            allDay: true,
-            color: corPorStatus(item.status),
-            extendedProps: {
-                categoria: item.categoria,
-                classificacao: item.classificacao,
-                acaoComprador: item.acaoComprador,
-                previsao: item.previsao,
-                status: item.status
+
+// Executa depois que todos os elementos estão disponíveis
+configurarBotoesNovaRotina();
+
+
+// ============================================================
+// MODAIS
+// ============================================================
+
+function configurarModais() {
+
+    const fecharDemanda =
+        document.getElementById(
+            "closeDemandModal"
+        );
+
+
+    const fecharRotina =
+        document.getElementById(
+            "closeRoutineModal"
+        );
+
+
+    const cancelarRotina =
+        document.getElementById(
+            "btnCancelRoutine"
+        );
+
+
+    const fecharConfirmacao =
+        document.getElementById(
+            "closeConfirmModal"
+        );
+
+
+    const cancelarConfirmacao =
+        document.getElementById(
+            "btnCancelConfirm"
+        );
+
+
+    if (fecharDemanda) {
+
+        fecharDemanda.addEventListener(
+            "click",
+            () => fecharModal(demandModal)
+        );
+
+    }
+
+
+    if (fecharRotina) {
+
+        fecharRotina.addEventListener(
+            "click",
+            () => fecharModal(routineModal)
+        );
+
+    }
+
+
+    if (cancelarRotina) {
+
+        cancelarRotina.addEventListener(
+            "click",
+            () => fecharModal(routineModal)
+        );
+
+    }
+
+
+    if (fecharConfirmacao) {
+
+        fecharConfirmacao.addEventListener(
+            "click",
+            () => fecharModal(confirmModal)
+        );
+
+    }
+
+
+    if (cancelarConfirmacao) {
+
+        cancelarConfirmacao.addEventListener(
+            "click",
+            () => fecharModal(confirmModal)
+        );
+
+    }
+
+
+    document.querySelectorAll(
+        ".modal-overlay"
+    ).forEach((overlay) => {
+
+        overlay.addEventListener(
+            "click",
+            (event) => {
+
+                if (
+                    event.target === overlay
+                ) {
+
+                    fecharModal(overlay);
+
+                }
+
             }
-        });
-    });
-}
+        );
 
-function obterOuCriarCalendarioGeral() {
-    if (calendarioGeralInstancia) return calendarioGeralInstancia;
-    const el = document.getElementById('calendarioGeral');
-    calendarioGeralInstancia = new FullCalendar.Calendar(el, {
-        ...configuracaoBaseCalendario(),
-        // Espelho é só leitura: o clique mostra o detalhe, sem editar/excluir.
-        eventClick: (info) => {
-            const item = estado.agendamentos.find(a => a.id === info.event.id);
-            if (item) abrirModalDetalheEvento(item, false);
+    });
+
+
+    document.addEventListener(
+        "keydown",
+        (event) => {
+
+            if (event.key === "Escape") {
+
+                fecharTodosModais();
+
+            }
+
         }
-    });
-    calendarioGeralInstancia.render();
-    return calendarioGeralInstancia;
+    );
+
 }
 
-function obterOuCriarCalendarioComprador() {
-    if (calendarioCompradorInstancia) return calendarioCompradorInstancia;
-    const el = document.getElementById('calendarioComprador');
-    calendarioCompradorInstancia = new FullCalendar.Calendar(el, {
-        ...configuracaoBaseCalendario(),
-        // Clicar num dia vazio preenche a data no formulário de cadastro,
-        // igual ao "criar rápido" do Google Agenda.
-        dateClick: (info) => {
-            limparFormularioComprador();
-            const inputData = document.getElementById('inputDataComprador');
-            if (inputData) inputData.value = info.dateStr;
-            document.getElementById('inputCategoriaComprador')?.focus();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        },
-        // Clicar num evento existente abre o modal de detalhe, com botões
-        // de editar (carrega no formulário) e excluir.
-        eventClick: (info) => {
-            const item = estado.agendamentos.find(a => a.id === info.event.id);
-            if (item) abrirModalDetalheEvento(item, true);
-        }
-    });
-    calendarioCompradorInstancia.render();
-    return calendarioCompradorInstancia;
+
+function abrirModal(modal) {
+
+    if (!modal) return;
+
+    modal.classList.remove("hidden");
+
+    document.body.classList.add(
+        "modal-open"
+    );
+
 }
 
-function aplicarVisualizacao(tela, filtrados, options) {
-    const ehGeral = tela === 'geral';
-    const config = ehGeral ? obterEstadoAgendaAtual() : obterEstadoCompradorAtual();
-    const emCalendario = config.visualizacao === 'calendario';
 
-    const idContainerTabela = ehGeral ? 'containerTabelaGeral' : 'containerTabelaComprador';
-    const idContainerCalendario = ehGeral ? 'containerCalendarioGeral' : 'containerCalendarioComprador';
-    const idCorpoTabela = ehGeral ? 'tabelaCorpo' : 'tabelaCorpoComprador';
+function fecharModal(modal) {
 
-    document.getElementById(idContainerTabela).style.display = emCalendario ? 'none' : 'block';
-    document.getElementById(idContainerCalendario).style.display = emCalendario ? 'block' : 'none';
+    if (!modal) return;
 
-    if (emCalendario) {
-        const calendario = ehGeral ? obterOuCriarCalendarioGeral() : obterOuCriarCalendarioComprador();
-        atualizarEventosCalendario(calendario, filtrados);
-        calendario.updateSize();
-    } else {
-        renderizarTabelaGenerica(idCorpoTabela, filtrados, options);
-    }
-}
+    modal.classList.add("hidden");
 
-function alternarVisualizacao(tela, modo) {
-    const config = tela === 'geral' ? obterEstadoAgendaAtual() : obterEstadoCompradorAtual();
-    config.visualizacao = modo;
-    sincronizarSetasOrdenacaoVisuais();
-    renderizarTelasAtuais();
-}
+    if (
+        !document.querySelector(
+            ".modal-overlay:not(.hidden)"
+        )
+    ) {
 
-function renderizarTabelaGeral() {
-    const agendaAtual = obterEstadoAgendaAtual();
-    const filtrados = estado.agendamentos.filter(item => {
-        const matchEmpresa = item.empresa === estado.empresaAtual;
-        const matchClassificacao = estado.classificacaoFiltroAtual ? item.classificacao === estado.classificacaoFiltroAtual : true;
-        const matchStatus = agendaAtual.statusFiltro ? item.status === agendaAtual.statusFiltro : true;
-        return matchEmpresa && matchClassificacao && matchStatus;
-    });
+        document.body.classList.remove(
+            "modal-open"
+        );
 
-    aplicarVisualizacao('geral', filtrados, { showActions: false });
-}
-
-function renderizarTabelaComprador() {
-    const compradorAtual = obterEstadoCompradorAtual();
-    const filtrados = estado.agendamentos.filter(item => {
-        const matchEmpresaComprador = item.empresa === estado.empresaCompradorAtual;
-        const matchCompradorLogado = item.comprador === estado.compradorLogado;
-        const matchStatus = compradorAtual.statusFiltro ? item.status === compradorAtual.statusFiltro : true;
-        return matchEmpresaComprador && matchCompradorLogado && matchStatus;
-    });
-
-    aplicarVisualizacao('painel-comprador', filtrados, { showActions: true });
-}
-
-function obterClasseStatus(status) {
-    if (status === 'EXECUTADO') return 'executado';
-    if (status === 'EXECUTADO PARCIALMENTE') return 'parcial';
-    return 'agendado';
-}
-
-function formatarData(dataIso) {
-    if (!dataIso) return '';
-    const partes = dataIso.split('-');
-    if (partes.length !== 3) return dataIso;
-    return `${partes[2]}/${partes[1]}/${partes[0]}`;
-}
-
-function formatarDataISO(data) {
-    const ano = data.getFullYear();
-    const mes = String(data.getMonth() + 1).padStart(2, '0');
-    const dia = String(data.getDate()).padStart(2, '0');
-    return `${ano}-${mes}-${dia}`;
-}
-
-// Sábado volta pro dia útil mais próximo (sexta); domingo avança pro mais
-// próximo (segunda) — em ambos os casos, o vizinho a 1 dia de distância.
-function ajustarParaDiaUtil(data) {
-    const diaSemana = data.getDay();
-    const ajustada = new Date(data);
-    if (diaSemana === 6) ajustada.setDate(ajustada.getDate() - 1);
-    else if (diaSemana === 0) ajustada.setDate(ajustada.getDate() + 1);
-    return ajustada;
-}
-
-// Evita rolar pro mês seguinte quando o dia base (ex: 31) não existe no mês
-// alvo (ex: abril) — trava no último dia real daquele mês.
-function diaDoMesComLimite(ano, mesIndex, diaDesejado) {
-    const ultimoDiaDoMes = new Date(ano, mesIndex + 1, 0).getDate();
-    return Math.min(diaDesejado, ultimoDiaDoMes);
-}
-
-// Gera as datas (YYYY-MM-DD) de uma recorrência mensal a partir de uma data
-// base, já com o ajuste de dia útil aplicado a cada ocorrência.
-function gerarDatasRecorrenciaMensal(dataBaseStr, quantidadeMeses) {
-    const [anoBase, mesBase, diaBase] = dataBaseStr.split('-').map(Number);
-    const datas = [dataBaseStr];
-
-    for (let i = 1; i < quantidadeMeses; i++) {
-        const mesIndexAlvo = (mesBase - 1) + i;
-        const anoAlvo = anoBase + Math.floor(mesIndexAlvo / 12);
-        const mesAlvo = ((mesIndexAlvo % 12) + 12) % 12;
-        const diaAlvo = diaDoMesComLimite(anoAlvo, mesAlvo, diaBase);
-        const dataAjustada = ajustarParaDiaUtil(new Date(anoAlvo, mesAlvo, diaAlvo));
-        datas.push(formatarDataISO(dataAjustada));
     }
 
-    return datas;
 }
 
-// Grava todas as ocorrências da série em uma única escrita em lote. A 1ª
-// ocorrência mantém o status escolhido no formulário; as futuras nascem
-// como AGENDADO, já que ainda não aconteceram.
-async function criarSerieRecorrenteMensal(dadosBase, dataInicialStr, quantidadeMeses) {
-    const datas = gerarDatasRecorrenciaMensal(dataInicialStr, quantidadeMeses);
-    const colecaoAgendamentos = collection(db, "agendamentos");
-    const primeiraRef = doc(colecaoAgendamentos);
-    const serieRecorrenciaId = primeiraRef.id;
-    const lote = writeBatch(db);
 
-    datas.forEach((dataOcorrencia, indice) => {
-        const ref = indice === 0 ? primeiraRef : doc(colecaoAgendamentos);
-        lote.set(ref, {
-            ...dadosBase,
-            data: dataOcorrencia,
-            status: indice === 0 ? dadosBase.status : 'AGENDADO',
-            recorrente: true,
-            serieRecorrenciaId,
-            criadoPorUid: auth.currentUser.uid
-        });
+function fecharTodosModais() {
+
+    document.querySelectorAll(
+        ".modal-overlay"
+    ).forEach((modal) => {
+
+        modal.classList.add("hidden");
+
     });
 
-    await lote.commit();
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+
 }
 
-async function salvarAgendamentoComprador() {
-    const data = document.getElementById('inputDataComprador').value;
-    const classificacao = document.getElementById('inputClassificacaoComprador').value;
-    const categoria = document.getElementById('inputCategoriaComprador').value.trim();
-    const fornecedor = document.getElementById('inputFornecedorComprador').value.trim();
-    const acaoComprador = document.getElementById('inputAcaoComprador').value;
-    const previsao = document.getElementById('inputPrevisaoComprador').value;
-    const status = document.getElementById('inputStatusComprador').value;
-    const editId = document.getElementById('editIndexComprador').value;
-    const repetirMensalmente = editId === "-1" && !!document.getElementById('inputRecorrenteComprador')?.checked;
-    const horizonteMeses = parseInt(document.getElementById('inputHorizonteRecorrenciaComprador')?.value || '12', 10);
 
-    if (!data || !classificacao || !categoria || !fornecedor || !acaoComprador || !previsao || !status) {
-        alert("Por favor, preencha todos os campos do agendamento.");
-        return;
-    }
+// ============================================================
+// CARDS
+// ============================================================
 
-    if (!auth.currentUser) {
-        alert("Sua sessão expirou. Volte à seleção de compradores e entre novamente.");
-        return;
-    }
+function configurarCards() {
 
-    const dadosRegistro = {
-        empresa: estado.empresaCompradorAtual,
-        classificacao,
-        categoria,
-        fornecedor,
-        acaoComprador,
-        previsao,
-        status,
-        comprador: estado.compradorLogado,
-        atualizadoEm: new Date().toISOString()
+    // Os cards criados dinamicamente
+    // já recebem o evento ao serem criados.
+
+}
+
+
+// ============================================================
+// PROCEDIMENTOS
+// ============================================================
+
+function renderizarProcedimentos() {
+
+    const lista =
+        document.getElementById(
+            "procedureList"
+        );
+
+
+    if (!lista) return;
+
+
+    lista.innerHTML = "";
+
+
+    rotinas.forEach((rotina) => {
+
+        const card =
+            document.createElement("article");
+
+        card.className =
+            "procedure-card";
+
+
+        card.dataset.routineId =
+            rotina.id;
+
+
+        card.innerHTML = `
+
+            <div class="procedure-card-header">
+
+                <span class="procedure-category">
+                    ROTINA
+                </span>
+
+                <span class="priority-indicator ${rotina.prioridade}">
+                    ${formatarPrioridade(rotina.prioridade)}
+                </span>
+
+            </div>
+
+
+            <h3>
+                ${escapeHTML(rotina.descricao)}
+            </h3>
+
+
+            <p>
+                ${escapeHTML(
+                    rotina.procedimento?.[0] ||
+                    "Nenhum procedimento cadastrado."
+                )}
+            </p>
+
+
+            <button
+                type="button"
+                class="procedure-link"
+            >
+                Abrir procedimento →
+            </button>
+
+        `;
+
+
+        card
+            .querySelector(
+                ".procedure-link"
+            )
+            .addEventListener(
+                "click",
+                () => abrirDetalhesRotina(rotina.id)
+            );
+
+
+        lista.appendChild(card);
+
+    });
+
+}
+
+
+// ============================================================
+// INTERFACE GERAL
+// ============================================================
+
+function atualizarInterface() {
+
+    configurarDataAtual();
+
+    renderizarDemandasDoDia();
+
+    renderizarSemana();
+
+    atualizarProgressoSemana();
+
+    renderizarProcedimentos();
+
+}
+
+
+// ============================================================
+// FORMATAÇÕES
+// ============================================================
+
+function formatarPrioridade(valor) {
+
+    const prioridades = {
+
+        alta: "Alta",
+
+        media: "Média",
+
+        baixa: "Baixa"
+
     };
 
-    try {
-        if (editId !== "-1") {
-            await updateDoc(doc(db, "agendamentos", editId), { ...dadosRegistro, data });
-        } else if (repetirMensalmente) {
-            // criadoPorUid só é gravado na criação — é o que as regras do
-            // Firestore usam depois pra saber quem tem permissão de editar
-            // ou apagar esse registro específico.
-            await criarSerieRecorrenteMensal(dadosRegistro, data, horizonteMeses);
-        } else {
-            await addDoc(collection(db, "agendamentos"), {
-                ...dadosRegistro,
-                data,
-                criadoPorUid: auth.currentUser.uid
-            });
-        }
-        limparFormularioComprador();
-    } catch (error) {
-        console.error("Erro ao salvar no Firestore:", error);
-        alert("Erro ao salvar o registro. Verifique sua conexão ou se sua sessão ainda é válida.");
-    }
+
+    return prioridades[valor] || valor;
+
 }
 
-function editarAgendamentoComprador(id) {
-    const item = estado.agendamentos.find(a => a.id === id);
-    if (!item) return;
 
-    document.getElementById('editIndexComprador').value = item.id;
-    document.getElementById('inputDataComprador').value = item.data;
-    document.getElementById('inputClassificacaoComprador').value = item.classificacao || '';
-    document.getElementById('inputCategoriaComprador').value = item.categoria || '';
-    document.getElementById('inputFornecedorComprador').value = item.fornecedor;
-    document.getElementById('inputAcaoComprador').value = item.acaoComprador || '';
-    document.getElementById('inputPrevisaoComprador').value = item.previsao;
-    document.getElementById('inputStatusComprador').value = item.status;
+function formatarDistribuicao(valor) {
 
-    // Recorrência só faz sentido ao criar — editar mexe só nesta ocorrência.
-    definirVisibilidadeRecorrencia(false);
+    const distribuicoes = {
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+        diario: "Diariamente",
+
+        segunda: "Segunda-feira",
+
+        terca: "Terça-feira",
+
+        quarta: "Quarta-feira",
+
+        quinta: "Quinta-feira",
+
+        sexta: "Sexta-feira",
+
+        "segunda-quinta":
+            "Segunda e Quinta",
+
+        solicitacao:
+            "Sob solicitação"
+
+    };
+
+
+    return distribuicoes[valor] || valor;
+
 }
 
-async function excluirAgendamentoComprador(id) {
-    const item = estado.agendamentos.find(a => a.id === id);
-    const mensagem = item?.recorrente
-        ? "Este lançamento faz parte de uma série mensal. Remover apenas esta ocorrência?"
-        : "Deseja realmente remover este agendamento?";
 
-    if (confirm(mensagem)) {
-        try {
-            await deleteDoc(doc(db, "agendamentos", id));
-        } catch (error) {
-            console.error("Erro ao deletar documento:", error);
-            alert("Erro ao excluir o registro.");
-        }
-    }
+function formatarPeriodo(valor) {
+
+    const periodos = {
+
+        atual: "Mês Atual",
+
+        "atual-anterior":
+            "Mês Atual × Anterior",
+
+        "90-dias":
+            "Últimos 90 dias",
+
+        "90-atual":
+            "90 dias × Mês Atual",
+
+        personalizado:
+            "Personalizado"
+
+    };
+
+
+    return periodos[valor] || valor;
+
 }
 
-function limparFormularioComprador() {
-    document.getElementById('editIndexComprador').value = "-1";
-    document.getElementById('inputDataComprador').value = '';
-    document.getElementById('inputClassificacaoComprador').value = '';
-    document.getElementById('inputCategoriaComprador').value = '';
-    document.getElementById('inputFornecedorComprador').value = '';
-    document.getElementById('inputAcaoComprador').value = '';
-    document.getElementById('inputPrevisaoComprador').value = '';
-    document.getElementById('inputStatusComprador').value = 'AGENDADO';
-    definirVisibilidadeRecorrencia(true);
+
+// ============================================================
+// GERAR ID
+// ============================================================
+
+function gerarIdUnico() {
+
+    return (
+        "rotina-" +
+        Date.now() +
+        "-" +
+        Math.random()
+            .toString(36)
+            .substring(2, 8)
+    );
+
 }
 
-function definirVisibilidadeRecorrencia(habilitado) {
-    const grupo = document.getElementById('grupoRecorrencia');
-    const checkbox = document.getElementById('inputRecorrenteComprador');
-    const select = document.getElementById('inputHorizonteRecorrenciaComprador');
-    if (grupo) grupo.style.display = habilitado ? '' : 'none';
-    if (checkbox) checkbox.checked = false;
-    if (select) select.disabled = true;
-}
 
-function exportarExcel() {
-    let filtrados = [];
-    let nomeArquivo = "";
+// ============================================================
+// ESCAPAR HTML
+// ============================================================
 
-    if (estado.telaAtual === 'geral') {
-        const agendaAtual = obterEstadoAgendaAtual();
-        filtrados = estado.agendamentos.filter(item => {
-            const matchEmpresa = item.empresa === estado.empresaAtual;
-            const matchClassificacao = estado.classificacaoFiltroAtual ? item.classificacao === estado.classificacaoFiltroAtual : true;
-            const matchStatus = agendaAtual.statusFiltro ? item.status === agendaAtual.statusFiltro : true;
-            return matchEmpresa && matchClassificacao && matchStatus;
-        });
+function escapeHTML(valor) {
 
-        nomeArquivo = `Agenda_${estado.empresaAtual.replace(/[^a-zA-Z0-9]/g, '_')}_${estado.classificacaoFiltroAtual || 'GERAL'}.csv`;
-
-    } else if (estado.telaAtual === 'painel-comprador') {
-        const compradorAtual = obterEstadoCompradorAtual();
-        filtrados = estado.agendamentos.filter(item => {
-            const matchEmpresaComprador = item.empresa === estado.empresaCompradorAtual;
-            const matchCompradorLogado = item.comprador === estado.compradorLogado;
-            const matchStatus = compradorAtual.statusFiltro ? item.status === compradorAtual.statusFiltro : true;
-            return matchEmpresaComprador && matchCompradorLogado && matchStatus;
-        });
-
-        nomeArquivo = `Painel_${estado.compradorLogado}_${estado.empresaCompradorAtual.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+    if (valor === null || valor === undefined) {
+        return "";
     }
 
-    if (filtrados.length === 0) {
-        alert("Não há dados para exportar nesta visualização.");
-        return;
-    }
 
-    let csv = "Data;Classificação;Categoria;Fornecedor;Ação do Comprador;Previsão Faturamento;Status\n";
-    
-    filtrados.forEach(item => {
-        const data = formatarData(item.data) || '';
-        const classificacao = (item.classificacao || 'GERAL').replace(/;/g, ',');
-        const categoria = (item.categoria || '').replace(/;/g, ',');
-        const fornecedor = (item.fornecedor || '').replace(/;/g, ',');
-        const acaoComprador = (item.acaoComprador || '').replace(/;/g, ',');
-        const previsao = (item.previsao || '').replace(/;/g, ',');
-        const status = (item.status || '').replace(/;/g, ',');
+    return String(valor)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 
-        csv += `${data};${classificacao};${categoria};${fornecedor};${acaoComprador};${previsao};${status}\n`;
-    });
-
-    const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = nomeArquivo;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
 }
+
+
+// ============================================================
+// TOAST
+// ============================================================
+
+function mostrarToast(mensagem) {
+
+    const container =
+        document.getElementById(
+            "toastContainer"
+        );
+
+
+    if (!container) return;
+
+
+    const toast =
+        document.createElement("div");
+
+
+    toast.className =
+        "toast";
+
+
+    toast.textContent =
+        mensagem;
+
+
+    container.appendChild(toast);
+
+
+    setTimeout(() => {
+
+        toast.classList.add(
+            "show"
+        );
+
+    }, 10);
+
+
+    setTimeout(() => {
+
+        toast.classList.remove(
+            "show"
+        );
+
+
+        setTimeout(() => {
+
+            toast.remove();
+
+        }, 300);
+
+    }, 3000);
+
+}
+
+
+// ============================================================
+// CONSOLE
+// ============================================================
+
+console.log(
+    "Agenda Compras V2 carregada."
+);
