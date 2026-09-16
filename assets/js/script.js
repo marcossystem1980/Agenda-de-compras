@@ -189,6 +189,77 @@ async function carregarRotinasDoFirebase() {
 
 
 // ============================================================
+// PERSISTÊNCIA NO FIREBASE
+// ============================================================
+
+async function salvarRotinaNoFirebase(rotina) {
+
+    if (!rotina || !rotina.id) {
+        throw new Error("Rotina inválida para salvar.");
+    }
+
+    await window.firebaseSetDoc(
+        window.firebaseDoc(window.db, "rotinas", rotina.id),
+        {
+            descricao: rotina.descricao || "",
+            dia: rotina.dia || "",
+            periodo: rotina.periodo || "",
+            prioridade: rotina.prioridade || "baixa",
+            status: rotina.status || "pendente",
+            procedimento: Array.isArray(rotina.procedimento)
+                ? rotina.procedimento
+                : [],
+            observacoes: rotina.observacoes || ""
+        }
+    );
+
+}
+
+
+async function atualizarStatusNoFirebase(rotina) {
+
+    if (!rotina || !rotina.id) {
+        throw new Error("Rotina inválida para atualizar status.");
+    }
+
+    await window.firebaseUpdateDoc(
+        window.firebaseDoc(window.db, "rotinas", rotina.id),
+        {
+            status: rotina.status
+        }
+    );
+
+}
+
+
+async function excluirRotinaDoFirebase(id) {
+
+    if (!id) {
+        throw new Error("ID da rotina não informado.");
+    }
+
+    await window.firebaseDeleteDoc(
+        window.firebaseDoc(window.db, "rotinas", id)
+    );
+
+}
+
+
+async function reiniciarSemanaNoFirebase() {
+
+    const promessas = rotinas.map((rotina) =>
+        window.firebaseUpdateDoc(
+            window.firebaseDoc(window.db, "rotinas", rotina.id),
+            { status: "pendente" }
+        )
+    );
+
+    await Promise.all(promessas);
+
+}
+
+
+// ============================================================
 // ELEMENTOS PRINCIPAIS
 // ============================================================
 
@@ -279,6 +350,7 @@ document.addEventListener("DOMContentLoaded", () => {
     configurarFormularioRotina();
     configurarBotoesRotina();
     configurarBotoesNovaRotina();
+    configurarReiniciarSemana();
 
     verificarSessao();
 
@@ -1647,7 +1719,7 @@ function configurarBotoesRotina() {
 
         botaoStatus.addEventListener(
             "click",
-            () => {
+            async () => {
 
                 if (!rotinaSelecionada)
                     return;
@@ -1659,23 +1731,43 @@ function configurarBotoesRotina() {
                         : "feito";
 
 
-                rotinaSelecionada.status =
-                    novoStatus;
+                try {
 
+                    rotinaSelecionada.status = novoStatus;
 
-                fecharModal(
-                    demandModal
-                );
+                    await atualizarStatusNoFirebase(
+                        rotinaSelecionada
+                    );
 
+                    fecharModal(
+                        demandModal
+                    );
 
-                atualizarInterface();
+                    atualizarInterface();
 
+                    mostrarToast(
+                        novoStatus === "feito"
+                            ? "Demanda concluída e salva."
+                            : "Demanda voltou para pendente e foi salva."
+                    );
 
-                mostrarToast(
-                    novoStatus === "feito"
-                        ? "Demanda concluída."
-                        : "Demanda voltou para pendente."
-                );
+                } catch (erro) {
+
+                    rotinaSelecionada.status =
+                        rotinaSelecionada.status === "feito"
+                            ? "pendente"
+                            : "feito";
+
+                    console.error(
+                        "Erro ao atualizar status no Firebase:",
+                        erro
+                    );
+
+                    mostrarToast(
+                        "Não foi possível salvar o status no Firebase."
+                    );
+
+                }
 
             }
         );
@@ -1756,14 +1848,23 @@ function configurarBotoesRotina() {
 
         botaoConfirmar.addEventListener(
             "click",
-            () => {
+            async () => {
 
                 if (
                     acaoConfirmacao ===
                     "excluir"
                 ) {
 
-                    excluirRotina();
+                    await excluirRotina();
+
+                }
+
+                else if (
+                    acaoConfirmacao ===
+                    "reiniciar-semana"
+                ) {
+
+                    await reiniciarSemana();
 
                 }
 
@@ -1967,7 +2068,7 @@ function abrirConfirmacaoExclusao() {
 // EXCLUIR ROTINA
 // ============================================================
 
-function excluirRotina() {
+async function excluirRotina() {
 
     if (!rotinaSelecionada)
         return;
@@ -1977,32 +2078,49 @@ function excluirRotina() {
         rotinaSelecionada.id;
 
 
-    rotinas =
-        rotinas.filter(
-            (rotina) =>
-                rotina.id !== id
+    try {
+
+        await excluirRotinaDoFirebase(id);
+
+        rotinas =
+            rotinas.filter(
+                (rotina) =>
+                    rotina.id !== id
+            );
+
+
+        rotinaSelecionada =
+            null;
+
+
+        acaoConfirmacao =
+            null;
+
+
+        fecharModal(
+            confirmModal
         );
 
 
-    rotinaSelecionada =
-        null;
+        atualizarInterface();
 
 
-    acaoConfirmacao =
-        null;
+        mostrarToast(
+            "Demanda excluída do Firebase com sucesso."
+        );
 
+    } catch (erro) {
 
-    fecharModal(
-        confirmModal
-    );
+        console.error(
+            "Erro ao excluir rotina do Firebase:",
+            erro
+        );
 
+        mostrarToast(
+            "Não foi possível excluir a rotina do Firebase."
+        );
 
-    atualizarInterface();
-
-
-    mostrarToast(
-        "Demanda excluída com sucesso."
-    );
+    }
 
 }
 
@@ -2018,10 +2136,9 @@ function configurarFormularioRotina() {
 
     routineForm.addEventListener(
         "submit",
-        (event) => {
+        async (event) => {
 
             event.preventDefault();
-
 
             const formData =
                 new FormData(
@@ -2079,79 +2196,96 @@ function configurarFormularioRotina() {
             // EDIÇÃO
             // =================================================
 
-            if (
-                modoEdicao &&
-                rotinaSelecionada
-            ) {
+            try {
 
-                rotinaSelecionada.descricao =
-                    descricao;
+                // =================================================
+                // EDIÇÃO
+                // =================================================
 
+                if (
+                    modoEdicao &&
+                    rotinaSelecionada
+                ) {
 
-                rotinaSelecionada.dia =
-                    dia;
+                    const rotinaAtualizada = {
+                        ...rotinaSelecionada,
+                        descricao,
+                        dia,
+                        periodo,
+                        prioridade,
+                        procedimento,
+                        observacoes
+                    };
 
+                    await salvarRotinaNoFirebase(
+                        rotinaAtualizada
+                    );
 
-                rotinaSelecionada.periodo =
-                    periodo;
+                    Object.assign(
+                        rotinaSelecionada,
+                        rotinaAtualizada
+                    );
 
+                    mostrarToast(
+                        "Demanda atualizada e salva no Firebase."
+                    );
 
-                rotinaSelecionada.prioridade =
-                    prioridade;
+                }
 
+                // =================================================
+                // NOVA ROTINA
+                // =================================================
 
-                rotinaSelecionada.procedimento =
-                    procedimento;
+                else {
 
+                    const novaRotina = {
 
-                rotinaSelecionada.observacoes =
-                    observacoes;
+                        id:
+                            gerarIdUnico(),
 
+                        descricao,
+
+                        dia,
+
+                        periodo,
+
+                        prioridade,
+
+                        status:
+                            "pendente",
+
+                        procedimento,
+
+                        observacoes
+
+                    };
+
+                    await salvarRotinaNoFirebase(
+                        novaRotina
+                    );
+
+                    rotinas.push(
+                        novaRotina
+                    );
+
+                    mostrarToast(
+                        "Rotina cadastrada e salva no Firebase."
+                    );
+
+                }
+
+            } catch (erro) {
+
+                console.error(
+                    "Erro ao salvar rotina no Firebase:",
+                    erro
+                );
 
                 mostrarToast(
-                    "Demanda atualizada com sucesso."
+                    "Não foi possível salvar a rotina no Firebase."
                 );
 
-            }
-
-
-            // =================================================
-            // NOVA ROTINA
-            // =================================================
-
-            else {
-
-                const novaRotina = {
-
-                    id:
-                        gerarIdUnico(),
-
-                    descricao,
-
-                    dia,
-
-                    periodo,
-
-                    prioridade,
-
-                    status:
-                        "pendente",
-
-                    procedimento,
-
-                    observacoes
-
-                };
-
-
-                rotinas.push(
-                    novaRotina
-                );
-
-
-                mostrarToast(
-                    "Rotina cadastrada com sucesso."
-                );
+                return;
 
             }
 
@@ -2312,6 +2446,100 @@ function iniciarNovaRotina() {
     abrirModal(
         routineModal
     );
+
+}
+
+
+// ============================================================
+// REINICIAR SEMANA
+// ============================================================
+
+function configurarReiniciarSemana() {
+
+    const botao =
+        document.getElementById(
+            "btnResetWeek"
+        );
+
+
+    if (!botao) return;
+
+
+    botao.addEventListener(
+        "click",
+        () => {
+
+            const mensagem =
+                document.getElementById(
+                    "confirmMessage"
+                );
+
+            const botaoConfirmar =
+                document.getElementById(
+                    "btnConfirmAction"
+                );
+
+            if (mensagem) {
+                mensagem.textContent =
+                    "Deseja reiniciar a semana? Todas as demandas serão marcadas como pendentes.";
+            }
+
+            acaoConfirmacao =
+                "reiniciar-semana";
+
+            if (botaoConfirmar) {
+                botaoConfirmar.textContent =
+                    "Reiniciar semana";
+            }
+
+            abrirModal(
+                confirmModal
+            );
+
+        }
+    );
+
+}
+
+
+async function reiniciarSemana() {
+
+    try {
+
+        await reiniciarSemanaNoFirebase();
+
+        rotinas = rotinas.map(
+            (rotina) => ({
+                ...rotina,
+                status: "pendente"
+            })
+        );
+
+        fecharModal(
+            confirmModal
+        );
+
+        acaoConfirmacao =
+            null;
+
+        atualizarInterface();
+
+        mostrarToast(
+            "Semana reiniciada. Todas as demandas estão pendentes."
+        );
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao reiniciar semana no Firebase:",
+            erro
+        );
+
+        mostrarToast(
+            "Não foi possível reiniciar a semana no Firebase."
+        );
+
+    }
 
 }
 

@@ -119,12 +119,10 @@ img {
 
     padding: 30px;
 
-    background:
-        linear-gradient(
-            135deg,
-            rgba(67, 39, 12, 0.96),
-            rgba(114, 70, 19, 0.94)
-        );
+    background-image: url("../img/fundo-login.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 
     overflow-y: auto;
 

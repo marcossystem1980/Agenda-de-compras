@@ -334,6 +334,15 @@
                     </button>
 
 
+                    <button
+                        type="button"
+                        id="btnResetWeek"
+                        class="btn btn-secondary"
+                    >
+                        ↻ Reiniciar Semana
+                    </button>
+
+
                 </div>
 
 
@@ -1717,7 +1726,11 @@
     import {
         getFirestore,
         collection,
-        getDocs
+        getDocs,
+        doc,
+        setDoc,
+        updateDoc,
+        deleteDoc
     } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -1735,6 +1748,10 @@
     window.db = db;
     window.firebaseCollection = collection;
     window.firebaseGetDocs = getDocs;
+    window.firebaseDoc = doc;
+    window.firebaseSetDoc = setDoc;
+    window.firebaseUpdateDoc = updateDoc;
+    window.firebaseDeleteDoc = deleteDoc;
 </script>
 
 <script src="assets/js/script.js"></script>
