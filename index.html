@@ -1712,16 +1712,32 @@
     >
     </div>
 
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import {
+        getFirestore,
+        collection,
+        getDocs
+    } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
+    const firebaseConfig = {
+        apiKey: "AIzaSyDIjE6Kcrf7Pi3NrUnEKyMEq0KAqNAg0xI",
+        authDomain: "agenda-5d102.firebaseapp.com",
+        projectId: "agenda-5d102",
+        storageBucket: "agenda-5d102.firebasestorage.app",
+        messagingSenderId: "927330632677",
+        appId: "1:927330632677:web:c01316b928ff09e9b9a50c"
+    };
 
-    <!-- =========================================================
-         JAVASCRIPT
-    ========================================================== -->
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    <script
-        src="assets/js/script.js"
-    ></script>
+    window.db = db;
+    window.firebaseCollection = collection;
+    window.firebaseGetDocs = getDocs;
+</script>
 
+<script src="assets/js/script.js"></script>
 
 </body>
 

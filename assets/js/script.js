@@ -44,6 +44,28 @@ let rotinas = [
             "Conferir as classificações com maior aumento."
     },
 
+    {
+        id: "custo-medio",
+
+        descricao: "Custo Médio por Classificação",
+
+        dia: "terca",
+
+        periodo: "90 dias × Mês Atual",
+
+        prioridade: "alta",
+
+        status: "pendente",
+
+        procedimento: [
+            "Atualizar relatório",
+            "Filtrar período de 90 dias",
+            "Comparar com o mês atual",
+            "Verificar divergências relevantes"
+        ],
+
+        observacoes: ""
+    },
 
     {
         id: "transferencias",
@@ -67,33 +89,6 @@ let rotinas = [
 
         observacoes: ""
     },
-
-
-    {
-        id: "custo-medio",
-
-        descricao:
-            "Custo Médio por Classificação",
-
-        dia: "terca",
-
-        periodo:
-            "90 dias × Mês Atual",
-
-        prioridade: "alta",
-
-        status: "pendente",
-
-        procedimento: [
-            "Atualizar relatório",
-            "Filtrar período de 90 dias",
-            "Comparar com o mês atual",
-            "Verificar divergências relevantes"
-        ],
-
-        observacoes: ""
-    },
-
 
     {
         id: "revisoes",
@@ -119,6 +114,78 @@ let rotinas = [
     }
 
 ];
+
+// ============================================================
+// CARREGAR ROTINAS DO FIREBASE
+// ============================================================
+
+async function carregarRotinasDoFirebase() {
+
+    try {
+
+        const snapshot =
+            await window.firebaseGetDocs(
+                window.firebaseCollection(
+                    window.db,
+                    "rotinas"
+                )
+            );
+
+        const rotinasFirebase =
+            snapshot.docs.map((doc) => {
+
+                const dados = doc.data();
+
+                return {
+
+                    id: doc.id,
+
+                    descricao:
+                        dados.descricao || "",
+
+                    dia:
+                        dados.dia || "",
+
+                    periodo:
+                        dados.periodo || "",
+
+                    prioridade:
+                        dados.prioridade || "baixa",
+
+                    status:
+                        dados.status || "pendente",
+
+                    procedimento:
+                        Array.isArray(dados.procedimento)
+                            ? dados.procedimento
+                            : [],
+
+                    observacoes:
+                        dados.observacoes || ""
+
+                };
+
+            });
+
+        rotinas = rotinasFirebase;
+
+        console.log(
+            "Rotinas carregadas do Firebase:",
+            rotinas
+        );
+
+        atualizarInterface();
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao carregar rotinas do Firebase:",
+            erro
+        );
+
+    }
+
+}
 
 
 // ============================================================
@@ -204,29 +271,19 @@ let modoEdicao = false;
 // INICIALIZAÇÃO
 // ============================================================
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
+document.addEventListener("DOMContentLoaded", () => {
+    configurarDataAtual();
+    configurarLogin();
+    configurarNavegacao();
+    configurarModais();
+    configurarFormularioRotina();
+    configurarBotoesRotina();
+    configurarBotoesNovaRotina();
 
-        configurarDataAtual();
+    verificarSessao();
 
-        configurarLogin();
-
-        configurarNavegacao();
-
-        configurarModais();
-
-        configurarFormularioRotina();
-
-        configurarBotoesRotina();
-
-        configurarBotoesNovaRotina();
-
-        verificarSessao();
-
-    }
-);
-
+    carregarRotinasDoFirebase();
+});
 
 // ============================================================
 // LOGIN
@@ -316,24 +373,12 @@ function verificarSessao() {
 function abrirSistema() {
 
     if (loginScreen) {
-
-        loginScreen.classList.add(
-            "hidden"
-        );
-
+        loginScreen.classList.add("hidden");
     }
-
 
     if (appScreen) {
-
-        appScreen.classList.remove(
-            "hidden"
-        );
-
+        appScreen.classList.remove("hidden");
     }
-
-
-    atualizarInterface();
 
 }
 
@@ -677,6 +722,89 @@ function configurarDataAtual() {
 
 }
 
+// ============================================================
+// ATUALIZAR DATAS DA SEMANA
+// ============================================================
+
+function atualizarDatasDaSemana() {
+
+    const hoje = new Date();
+
+    const diaDaSemana = hoje.getDay();
+
+    // Domingo = 0
+    // Segunda = 1
+    // Terça = 2
+    // Quarta = 3
+    // Quinta = 4
+    // Sexta = 5
+    // Sábado = 6
+
+    // Calcula a segunda-feira da semana atual
+    const segunda = new Date(hoje);
+
+    const diferenca =
+        diaDaSemana === 0
+            ? -6
+            : 1 - diaDaSemana;
+
+    segunda.setDate(
+        hoje.getDate() + diferenca
+    );
+
+
+    const dias = [
+        "segunda",
+        "terca",
+        "quarta",
+        "quinta",
+        "sexta"
+    ];
+
+
+    dias.forEach((dia, index) => {
+
+        const data =
+            new Date(segunda);
+
+        data.setDate(
+            segunda.getDate() + index
+        );
+
+
+        const elemento =
+            document.querySelector(
+                `[data-date-day="${dia}"]`
+            );
+
+
+        if (!elemento) return;
+
+
+        const diaNumero =
+            String(
+                data.getDate()
+            ).padStart(2, "0");
+
+
+        const mes =
+            data.toLocaleDateString(
+                "pt-BR",
+                {
+                    month: "short"
+                }
+            )
+            .replace(".", "")
+            .toUpperCase();
+
+
+        elemento.textContent =
+            `${diaNumero} ${mes}`;
+
+    });
+
+}
+
 
 // ============================================================
 // DEMANDAS DO DIA
@@ -684,17 +812,13 @@ function configurarDataAtual() {
 
 function obterDemandasDoDia() {
 
-    const diaAtual =
-        obterDiaAtual();
+    const diaAtual = obterDiaAtual();
 
+    return rotinas.filter((rotina) => {
 
-    return rotinas.filter(
-        (rotina) => {
+        return rotina.dia === diaAtual;
 
-            return rotina.dia === diaAtual;
-
-        }
-    );
+    });
 
 }
 
@@ -1120,34 +1244,95 @@ function destacarDiaAtual() {
 
 function atualizarProgressoSemana() {
 
-    const total =
-        rotinas.length;
+    const diasDaSemana = [
+        "segunda",
+        "terca",
+        "quarta",
+        "quinta",
+        "sexta"
+    ];
 
 
-    const concluidas =
-        rotinas.filter(
-            (rotina) =>
-                rotina.status === "feito"
-        ).length;
+    let totalSemana = 0;
+    let concluidasSemana = 0;
 
+
+    // ========================================================
+    // CALCULAR TOTAL E CONCLUÍDAS
+    // ========================================================
+
+    diasDaSemana.forEach((dia) => {
+
+        const demandasDoDia =
+            rotinas.filter((rotina) => {
+
+                return rotina.dia === dia;
+
+            });
+
+
+        const totalDoDia =
+            demandasDoDia.length;
+
+
+        const concluidasDoDia =
+            demandasDoDia.filter((rotina) => {
+
+                return rotina.status === "feito";
+
+            }).length;
+
+
+        totalSemana += totalDoDia;
+
+        concluidasSemana += concluidasDoDia;
+
+
+        // ====================================================
+        // ATUALIZAR INDICADOR DO DIA
+        // ====================================================
+
+        const indicador =
+            document.querySelector(
+                `[data-progress-day="${dia}"]`
+            );
+
+
+        if (indicador) {
+
+            indicador.textContent =
+                `${concluidasDoDia}/${totalDoDia}`;
+
+        }
+
+    });
+
+
+    // ========================================================
+    // CALCULAR PORCENTAGEM
+    // ========================================================
 
     let percentual = 0;
 
 
-    if (total > 0) {
+    if (totalSemana > 0) {
 
         percentual =
             Math.round(
-                (concluidas / total) * 100
+                (concluidasSemana / totalSemana) * 100
             );
 
     }
 
 
+    // ========================================================
+    // ATUALIZAR RESUMO
+    // ========================================================
+
     if (weekCompleted) {
 
         weekCompleted.textContent =
-            concluidas;
+            concluidasSemana;
 
     }
 
@@ -1155,7 +1340,7 @@ function atualizarProgressoSemana() {
     if (weekTotal) {
 
         weekTotal.textContent =
-            total;
+            totalSemana;
 
     }
 
@@ -1167,6 +1352,10 @@ function atualizarProgressoSemana() {
 
     }
 
+
+    // ========================================================
+    // ATUALIZAR BARRA
+    // ========================================================
 
     if (weekProgressFill) {
 
@@ -2555,6 +2744,8 @@ function renderizarProcedimentos() {
 function atualizarInterface() {
 
     configurarDataAtual();
+
+    atualizarDatasDaSemana();
 
     renderizarDemandasDoDia();
 
