@@ -76,7 +76,8 @@ body {
     color:
         var(--text);
 
-    line-height: 1.5;
+    line-height:
+        1.5;
 
 }
 
@@ -119,12 +120,20 @@ img {
 
     padding: 30px;
 
-    background-image: url("../img/fundo-login.png");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-image:
+        url("../img/fundo-login.png");
 
-    overflow-y: auto;
+    background-size:
+        cover;
+
+    background-position:
+        center;
+
+    background-repeat:
+        no-repeat;
+
+    overflow-y:
+        auto;
 
 }
 
@@ -1184,40 +1193,95 @@ img {
     transition:
         transform 0.2s ease,
         box-shadow 0.2s ease,
-        border-color 0.2s ease;
+        border-color 0.2s ease,
+        background-color 0.2s ease;
 
 }
 
 
-.demand-card:hover {
+/* ==========================================================
+   STATUS — FEITO
+========================================================== */
 
-    transform:
-        translateY(-3px);
-
-    box-shadow:
-        var(--shadow-md);
-
-    border-color:
-        var(--primary-light);
-
-}
-
-
-.demand-card.completed {
+.demand-card.feito {
 
     border-left:
         4px solid var(--success);
 
+    background:
+        #fbfdfb;
+
 }
 
 
-.demand-card.pending {
+.demand-card.feito .demand-status-icon {
+
+    background:
+        var(--success-soft);
+
+    color:
+        var(--success);
+
+}
+
+
+.demand-card.feito .status-badge {
+
+    color:
+        #24763d;
+
+    background:
+        var(--success-soft);
+
+    border:
+        1px solid #cfe7d4;
+
+}
+
+
+/* ==========================================================
+   STATUS — PENDENTE
+========================================================== */
+
+.demand-card.pendente {
 
     border-left:
         4px solid var(--warning);
 
+    background:
+        #fffdf9;
+
 }
 
+
+.demand-card.pendente .demand-status-icon {
+
+    background:
+        var(--warning-soft);
+
+    color:
+        var(--warning);
+
+}
+
+
+.demand-card.pendente .status-badge {
+
+    color:
+        #a95f15;
+
+    background:
+        var(--warning-soft);
+
+    border:
+        1px solid #f0d7ba;
+
+}
+
+
+/* ==========================================================
+   CABEÇALHO DO CARD
+========================================================== */
 
 .demand-card-header {
 
@@ -1230,8 +1294,15 @@ img {
     align-items:
         center;
 
+    gap:
+        10px;
+
 }
 
+
+/* ==========================================================
+   ÍCONE DO STATUS
+========================================================== */
 
 .demand-status-icon {
 
@@ -1259,30 +1330,15 @@ img {
     font-weight:
         800;
 
-}
-
-
-.demand-card.completed .demand-status-icon {
-
-    background:
-        var(--success-soft);
-
-    color:
-        var(--success);
+    flex-shrink:
+        0;
 
 }
 
 
-.demand-card.pending .demand-status-icon {
-
-    background:
-        var(--warning-soft);
-
-    color:
-        var(--warning);
-
-}
-
+/* ==========================================================
+   BADGE DE STATUS
+========================================================== */
 
 .status-badge {
 
@@ -1292,8 +1348,11 @@ img {
     align-items:
         center;
 
+    justify-content:
+        center;
+
     padding:
-        4px 9px;
+        5px 10px;
 
     border-radius:
         999px;
@@ -1304,30 +1363,18 @@ img {
     font-weight:
         800;
 
-}
+    line-height:
+        1;
 
-
-.status-badge.completed {
-
-    color:
-        var(--success);
-
-    background:
-        var(--success-soft);
+    white-space:
+        nowrap;
 
 }
 
 
-.status-badge.pending {
-
-    color:
-        var(--warning);
-
-    background:
-        var(--warning-soft);
-
-}
-
+/* ==========================================================
+   CORPO DO CARD
+========================================================== */
 
 .demand-card-body {
 
@@ -1341,6 +1388,9 @@ img {
 
     font-size:
         17px;
+
+    line-height:
+        1.35;
 
     color:
         var(--text);
@@ -1362,6 +1412,10 @@ img {
 }
 
 
+/* ==========================================================
+   RODAPÉ DO CARD
+========================================================== */
+
 .demand-card-footer {
 
     display:
@@ -1372,6 +1426,9 @@ img {
 
     align-items:
         center;
+
+    gap:
+        10px;
 
     margin-top:
         18px;
@@ -1427,6 +1484,37 @@ img {
 
     font-weight:
         700;
+
+}
+
+
+/* ==========================================================
+   HOVER — CARDS DE DEMANDA
+========================================================== */
+
+.demand-card:hover {
+
+    transform:
+        translateY(-3px);
+
+    box-shadow:
+        var(--shadow-md);
+
+}
+
+
+.demand-card.feito:hover {
+
+    border-color:
+        #bcd7c3;
+
+}
+
+
+.demand-card.pendente:hover {
+
+    border-color:
+        #e1c79f;
 
 }
 
@@ -1869,6 +1957,9 @@ img {
 
 .weekly-demand-card {
 
+    position:
+        relative;
+
     background:
         var(--surface);
 
@@ -1887,39 +1978,51 @@ img {
     box-shadow:
         0 2px 5px rgba(0, 0, 0, 0.04);
 
+    overflow:
+        hidden;
+
     transition:
         transform 0.2s ease,
-        box-shadow 0.2s ease;
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease;
 
 }
 
 
-.weekly-demand-card:hover {
+/* ==========================================================
+   FEITO
+========================================================== */
 
-    transform:
-        translateY(-2px);
-
-    box-shadow:
-        var(--shadow-sm);
-
-}
-
-
-.weekly-demand-card.completed {
+.weekly-demand-card.feito {
 
     border-left:
-        3px solid var(--success);
+        4px solid var(--success);
+
+    background:
+        #fbfdfb;
 
 }
 
 
-.weekly-demand-card.pending {
+/* ==========================================================
+   PENDENTE
+========================================================== */
+
+.weekly-demand-card.pendente {
 
     border-left:
-        3px solid var(--warning);
+        4px solid var(--warning);
+
+    background:
+        #fffdf9;
 
 }
 
+
+/* ==========================================================
+   TOPO DO CARD SEMANAL
+========================================================== */
 
 .weekly-card-top {
 
@@ -1938,35 +2041,88 @@ img {
 }
 
 
+/* ==========================================================
+   BOLINHA DE STATUS
+========================================================== */
+
 .weekly-status-dot {
 
     width:
-        8px;
+        9px;
 
     height:
-        8px;
+        9px;
 
     border-radius:
         50%;
 
+    flex-shrink:
+        0;
+
 }
 
 
-.weekly-status-dot.completed {
+.weekly-status-dot.feito {
 
     background:
         var(--success);
 
+    box-shadow:
+        0 0 0 3px var(--success-soft);
+
 }
 
 
-.weekly-status-dot.pending {
+.weekly-status-dot.pendente {
 
     background:
         var(--warning);
 
+    box-shadow:
+        0 0 0 3px var(--warning-soft);
+
 }
 
+
+/* ==========================================================
+   BADGE — FEITO
+========================================================== */
+
+.weekly-demand-card.feito .status-badge {
+
+    color:
+        #24763d;
+
+    background:
+        var(--success-soft);
+
+    border:
+        1px solid #cfe7d4;
+
+}
+
+
+/* ==========================================================
+   BADGE — PENDENTE
+========================================================== */
+
+.weekly-demand-card.pendente .status-badge {
+
+    color:
+        #a95f15;
+
+    background:
+        var(--warning-soft);
+
+    border:
+        1px solid #f0d7ba;
+
+}
+
+
+/* ==========================================================
+   TÍTULO DO CARD SEMANAL
+========================================================== */
 
 .weekly-demand-card h3 {
 
@@ -1974,10 +2130,44 @@ img {
         13px;
 
     line-height:
-        1.3;
+        1.4;
 
     margin-top:
-        12px;
+        13px;
+
+    color:
+        var(--text);
+
+}
+
+
+/* ==========================================================
+   HOVER — CARDS SEMANAIS
+========================================================== */
+
+.weekly-demand-card:hover {
+
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        var(--shadow-sm);
+
+}
+
+
+.weekly-demand-card.feito:hover {
+
+    border-color:
+        #bcd7c3;
+
+}
+
+
+.weekly-demand-card.pendente:hover {
+
+    border-color:
+        #e1c79f;
 
 }
 
@@ -2955,13 +3145,186 @@ body.modal-open {
 
 
 /* ==========================================================
+   CHECKBOXES — DIAS DA ROTINA
+========================================================== */
+
+input[type="checkbox"][name="days"] {
+
+    appearance:
+        none;
+
+    -webkit-appearance:
+        none;
+
+    width:
+        18px;
+
+    height:
+        18px;
+
+    border:
+        1.5px solid #b8aea4;
+
+    border-radius:
+        4px;
+
+    background:
+        #ffffff;
+
+    cursor:
+        pointer;
+
+    display:
+        inline-grid;
+
+    place-content:
+        center;
+
+    flex-shrink:
+        0;
+
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.1s ease;
+
+}
+
+
+input[type="checkbox"][name="days"]::before {
+
+    content:
+        "✓";
+
+    color:
+        #ffffff;
+
+    font-size:
+        12px;
+
+    font-weight:
+        700;
+
+    transform:
+        scale(0);
+
+    transition:
+        transform 0.12s ease;
+
+}
+
+
+input[type="checkbox"][name="days"]:checked {
+
+    background-color:
+        var(--primary);
+
+    border-color:
+        var(--primary);
+
+}
+
+
+input[type="checkbox"][name="days"]:checked::before {
+
+    transform:
+        scale(1);
+
+}
+
+
+input[type="checkbox"][name="days"]:hover {
+
+    border-color:
+        var(--primary);
+
+}
+
+
+input[type="checkbox"][name="days"]:active {
+
+    transform:
+        scale(0.92);
+
+}
+
+
+.days-container {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        10px;
+
+    margin-top:
+        8px;
+
+}
+
+
+.day-option {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        10px;
+
+    cursor:
+        pointer;
+
+    font-size:
+        13px;
+
+    color:
+        #4a3328;
+
+    padding:
+        7px 9px;
+
+    border-radius:
+        6px;
+
+    transition:
+        background-color 0.15s ease;
+
+}
+
+
+.day-option:hover {
+
+    background:
+        #f7f3ee;
+
+}
+
+
+.day-option span {
+
+    line-height:
+        1;
+
+}
+
+
+/* ==========================================================
    RESPONSIVIDADE
 ========================================================== */
 
 @media (max-width: 1100px) {
 
     :root {
-        --sidebar-width: 210px;
+
+        --sidebar-width:
+            210px;
+
     }
 
 
@@ -3274,91 +3637,4 @@ body.modal-open {
 
     }
 
-}
-
-/* =========================================================
-   CHECKBOXES - DIAS DA ROTINA
-========================================================= */
-
-input[type="checkbox"][name="days"] {
-    appearance: none;
-    -webkit-appearance: none;
-
-    width: 18px;
-    height: 18px;
-
-    border: 1.5px solid #b8aea4;
-    border-radius: 4px;
-
-    background: #fff;
-    cursor: pointer;
-
-    display: inline-grid;
-    place-content: center;
-
-    flex-shrink: 0;
-
-    transition:
-        background-color 0.15s ease,
-        border-color 0.15s ease,
-        transform 0.1s ease;
-}
-
-input[type="checkbox"][name="days"]::before {
-    content: "✓";
-
-    color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-
-    transform: scale(0);
-    transition: transform 0.12s ease;
-}
-
-input[type="checkbox"][name="days"]:checked {
-    background-color: #724613;
-    border-color: #724613;
-}
-
-input[type="checkbox"][name="days"]:checked::before {
-    transform: scale(1);
-}
-
-input[type="checkbox"][name="days"]:hover {
-    border-color: #724613;
-}
-
-input[type="checkbox"][name="days"]:active {
-    transform: scale(0.92);
-}
-
-.days-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 8px;
-}
-
-.day-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    cursor: pointer;
-
-    font-size: 13px;
-    color: #4A3328;
-
-    padding: 7px 9px;
-    border-radius: 6px;
-
-    transition: background-color 0.15s ease;
-}
-
-.day-option:hover {
-    background: #f7f3ee;
-}
-
-.day-option span {
-    line-height: 1;
 }
