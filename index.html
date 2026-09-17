@@ -333,7 +333,6 @@
                         + Nova Rotina
                     </button>
 
-
                     <button
                         type="button"
                         id="btnResetWeek"
@@ -1328,60 +1327,46 @@
 
 
 
-                <!-- DIA DA ROTINA -->
+                <!-- DIAS DA ROTINA -->
 
                 <div class="form-group">
 
-
-                    <label
-                        for="routineDay"
-                    >
-                        Dia da rotina
+                    <label>
+                        Dias da rotina
                     </label>
 
+                    <div class="days-options">
 
-                    <select
-                        id="routineDay"
-                        name="day"
-                        required
-                    >
+                        <label class="day-option">
+                            <input type="checkbox" name="days" value="segunda">
+                            <span>Segunda-feira</span>
+                        </label>
 
+                        <label class="day-option">
+                            <input type="checkbox" name="days" value="terca">
+                            <span>Terça-feira</span>
+                        </label>
 
-                        <option value="">
-                            Selecione
-                        </option>
+                        <label class="day-option">
+                            <input type="checkbox" name="days" value="quarta">
+                            <span>Quarta-feira</span>
+                        </label>
 
+                        <label class="day-option">
+                            <input type="checkbox" name="days" value="quinta">
+                            <span>Quinta-feira</span>
+                        </label>
 
-                        <option value="segunda">
-                            Segunda-feira
-                        </option>
+                        <label class="day-option">
+                            <input type="checkbox" name="days" value="sexta">
+                            <span>Sexta-feira</span>
+                        </label>
 
+                    </div>
 
-                        <option value="terca">
-                            Terça-feira
-                        </option>
-
-
-                        <option value="quarta">
-                            Quarta-feira
-                        </option>
-
-
-                        <option value="quinta">
-                            Quinta-feira
-                        </option>
-
-
-                        <option value="sexta">
-                            Sexta-feira
-                        </option>
-
-
-                    </select>
-
+                    <small>Selecione um ou mais dias da semana.</small>
 
                 </div>
-
 
 
                 <!-- PERÍODO -->

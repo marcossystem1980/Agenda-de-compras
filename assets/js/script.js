@@ -136,33 +136,24 @@ async function carregarRotinasDoFirebase() {
 
                 const dados = doc.data();
 
+const dias = normalizarDias(dados);
+
                 return {
-
                     id: doc.id,
-
-                    descricao:
-                        dados.descricao || "",
-
-                    dia:
-                        dados.dia || "",
-
-                    periodo:
-                        dados.periodo || "",
-
-                    prioridade:
-                        dados.prioridade || "baixa",
-
-                    status:
-                        dados.status || "pendente",
-
-                    procedimento:
-                        Array.isArray(dados.procedimento)
-                            ? dados.procedimento
-                            : [],
-
-                    observacoes:
-                        dados.observacoes || ""
-
+                    descricao: dados.descricao || "",
+                    dias,
+                    periodo: dados.periodo || "",
+                    prioridade: dados.prioridade || "baixa",
+                    status: dados.status || "pendente",
+                    statusPorDia: normalizarStatusPorDia(
+                        dados.statusPorDia,
+                        dias,
+                        dados.status || "pendente"
+                    ),
+                    procedimento: Array.isArray(dados.procedimento)
+                        ? dados.procedimento
+                        : [],
+                    observacoes: dados.observacoes || ""
                 };
 
             });
@@ -192,20 +183,93 @@ async function carregarRotinasDoFirebase() {
 // PERSISTÊNCIA NO FIREBASE
 // ============================================================
 
-async function salvarRotinaNoFirebase(rotina) {
+function garantirDias(dias) {
+    return Array.isArray(dias)
+        ? [...new Set(dias.filter(Boolean))]
+        : [];
+}
 
+function normalizarDias(dadosOuRotina) {
+    const origem = dadosOuRotina || {};
+
+    if (Array.isArray(origem.dias)) {
+        return garantirDias(origem.dias);
+    }
+
+    if (origem.dia) {
+        return [origem.dia];
+    }
+
+    return [];
+}
+
+function normalizarStatusPorDia(statusPorDia, dias, statusLegado = "pendente") {
+    const resultado = {};
+    const mapa =
+        statusPorDia && typeof statusPorDia === "object"
+            ? statusPorDia
+            : {};
+
+    garantirDias(dias).forEach((dia) => {
+        resultado[dia] =
+            mapa[dia] === "feito" || mapa[dia] === "pendente"
+                ? mapa[dia]
+                : statusLegado === "feito"
+                    ? "feito"
+                    : "pendente";
+    });
+
+    return resultado;
+}
+
+function obterStatusDoDia(rotina, dia) {
+    if (!rotina || !dia) return "pendente";
+
+    if (
+        rotina.statusPorDia &&
+        typeof rotina.statusPorDia === "object" &&
+        Object.prototype.hasOwnProperty.call(
+            rotina.statusPorDia,
+            dia
+        )
+    ) {
+        return rotina.statusPorDia[dia];
+    }
+
+    return rotina.status || "pendente";
+}
+
+function prepararStatusPorDia(rotina, dias) {
+    return normalizarStatusPorDia(
+        rotina?.statusPorDia,
+        dias,
+        rotina?.status || "pendente"
+    );
+}
+
+async function salvarRotinaNoFirebase(rotina) {
     if (!rotina || !rotina.id) {
         throw new Error("Rotina inválida para salvar.");
     }
+
+    const dias = garantirDias(
+        normalizarDias(rotina)
+    );
+
+    const statusPorDia = prepararStatusPorDia(
+        rotina,
+        dias
+    );
 
     await window.firebaseSetDoc(
         window.firebaseDoc(window.db, "rotinas", rotina.id),
         {
             descricao: rotina.descricao || "",
-            dia: rotina.dia || "",
+            dias,
             periodo: rotina.periodo || "",
             prioridade: rotina.prioridade || "baixa",
             status: rotina.status || "pendente",
+            statusPorDia,
             procedimento: Array.isArray(rotina.procedimento)
                 ? rotina.procedimento
                 : [],
@@ -213,27 +277,41 @@ async function salvarRotinaNoFirebase(rotina) {
         }
     );
 
+    rotina.dias = dias;
+    rotina.statusPorDia = statusPorDia;
 }
 
-
-async function atualizarStatusNoFirebase(rotina) {
-
-    if (!rotina || !rotina.id) {
-        throw new Error("Rotina inválida para atualizar status.");
+async function atualizarStatusNoFirebase(rotina, dia, novoStatus) {
+    if (!rotina || !rotina.id || !dia) {
+        throw new Error("Rotina ou dia inválido para atualizar status.");
     }
+
+    const statusPorDia = prepararStatusPorDia(
+        rotina,
+        garantirDias(normalizarDias(rotina))
+    );
+
+    statusPorDia[dia] = novoStatus;
+
+    rotina.statusPorDia = statusPorDia;
+
+    const valoresStatus = Object.values(statusPorDia);
+    rotina.status =
+        valoresStatus.length > 0 &&
+        valoresStatus.every((status) => status === "feito")
+            ? "feito"
+            : "pendente";
 
     await window.firebaseUpdateDoc(
         window.firebaseDoc(window.db, "rotinas", rotina.id),
         {
-            status: rotina.status
+            status: rotina.status,
+            statusPorDia
         }
     );
-
 }
 
-
 async function excluirRotinaDoFirebase(id) {
-
     if (!id) {
         throw new Error("ID da rotina não informado.");
     }
@@ -241,23 +319,28 @@ async function excluirRotinaDoFirebase(id) {
     await window.firebaseDeleteDoc(
         window.firebaseDoc(window.db, "rotinas", id)
     );
-
 }
-
 
 async function reiniciarSemanaNoFirebase() {
+    const promessas = rotinas.map((rotina) => {
+        const dias = garantirDias(normalizarDias(rotina));
+        const statusPorDia = {};
 
-    const promessas = rotinas.map((rotina) =>
-        window.firebaseUpdateDoc(
+        dias.forEach((dia) => {
+            statusPorDia[dia] = "pendente";
+        });
+
+        return window.firebaseUpdateDoc(
             window.firebaseDoc(window.db, "rotinas", rotina.id),
-            { status: "pendente" }
-        )
-    );
+            {
+                status: "pendente",
+                statusPorDia
+            }
+        );
+    });
 
     await Promise.all(promessas);
-
 }
-
 
 // ============================================================
 // ELEMENTOS PRINCIPAIS
@@ -332,6 +415,8 @@ const routineForm =
 // ============================================================
 
 let rotinaSelecionada = null;
+
+let diaRotinaSelecionada = null;
 
 let acaoConfirmacao = null;
 
@@ -496,6 +581,7 @@ function fazerLogout() {
 
 
     rotinaSelecionada = null;
+    diaRotinaSelecionada = null;
 
     modoEdicao = false;
 
@@ -724,6 +810,19 @@ function obterDiaAtual() {
 
 }
 
+function obterDiasDaRotina(rotina) {
+
+    if (Array.isArray(rotina.dias)) {
+        return rotina.dias;
+    }
+
+    if (rotina.dia) {
+        return [rotina.dia];
+    }
+
+    return [];
+}
+
 
 function obterNomeDiaAtual() {
 
@@ -754,6 +853,19 @@ function obterNomeDiaAtual() {
         hoje.getDay()
     ];
 
+}
+
+function obterStatusDoDia(rotina, dia) {
+
+    if (
+        rotina.statusPorDia &&
+        typeof rotina.statusPorDia === "object"
+    ) {
+        return rotina.statusPorDia[dia] || "pendente";
+    }
+
+    // Compatibilidade com rotinas antigas
+    return rotina.status || "pendente";
 }
 
 
@@ -886,11 +998,12 @@ function obterDemandasDoDia() {
 
     const diaAtual = obterDiaAtual();
 
-    return rotinas.filter((rotina) => {
+return rotinas.filter((rotina) => {
 
-        return rotina.dia === diaAtual;
+    return obterDiasDaRotina(rotina)
+        .includes(diaAtual);
 
-    });
+});
 
 }
 
@@ -969,8 +1082,11 @@ function criarCardDemanda(rotina) {
         );
 
 
+    const diaAtual = obterDiaAtual();
+    const status = obterStatusDoDia(rotina, diaAtual);
+
     card.className =
-        `demand-card ${rotina.status}`;
+        `demand-card ${status}`;
 
 
     card.dataset.routineId =
@@ -978,13 +1094,13 @@ function criarCardDemanda(rotina) {
 
 
     const statusTexto =
-        rotina.status === "feito"
+        status === "feito"
             ? "Feito"
             : "Pendente";
 
 
     const statusIcon =
-        rotina.status === "feito"
+        status === "feito"
             ? "✓"
             : "◷";
 
@@ -1003,7 +1119,7 @@ function criarCardDemanda(rotina) {
                 ${statusIcon}
             </div>
 
-            <span class="status-badge ${rotina.status}">
+            <span class="status-badge ${status}">
                 ${statusTexto}
             </span>
 
@@ -1044,16 +1160,17 @@ function criarCardDemanda(rotina) {
     `;
 
 
-    card.addEventListener(
-        "click",
-        () => {
+card.addEventListener(
+    "click",
+    () => {
 
-            abrirDetalhesRotina(
-                rotina.id
-            );
+        abrirDetalhesRotina(
+            rotina.id,
+            obterDiaAtual()
+        );
 
-        }
-    );
+    }
+);
 
 
     return card;
@@ -1157,7 +1274,8 @@ function renderizarSemana() {
                 rotinas.filter(
                     (rotina) => {
 
-                        return rotina.dia === dia;
+return obterDiasDaRotina(rotina)
+    .includes(dia);
 
                     }
                 );
@@ -1194,7 +1312,8 @@ function renderizarSemana() {
 
                     area.appendChild(
                         criarCardSemanal(
-                            rotina
+                            rotina,
+                            dia
                         )
                     );
 
@@ -1214,24 +1333,23 @@ function renderizarSemana() {
 // CARD SEMANAL
 // ============================================================
 
-function criarCardSemanal(rotina) {
+function criarCardSemanal(rotina, dia) {
 
     const card =
         document.createElement(
             "article"
         );
 
+    const status = obterStatusDoDia(rotina, dia);
 
     card.className =
-        `weekly-demand-card ${rotina.status}`;
-
+        `weekly-demand-card ${status}`;
 
     card.dataset.routineId =
         rotina.id;
 
-
     const statusTexto =
-        rotina.status === "feito"
+        status === "feito"
             ? "Feito"
             : "Pendente";
 
@@ -1241,11 +1359,11 @@ function criarCardSemanal(rotina) {
         <div class="weekly-card-top">
 
             <span
-                class="weekly-status-dot ${rotina.status}"
+                class="weekly-status-dot ${status}"
             ></span>
 
             <span
-                class="status-badge ${rotina.status}"
+                class="status-badge ${status}"
             >
                 ${statusTexto}
             </span>
@@ -1262,16 +1380,17 @@ function criarCardSemanal(rotina) {
     `;
 
 
-    card.addEventListener(
-        "click",
-        () => {
+card.addEventListener(
+    "click",
+    () => {
 
-            abrirDetalhesRotina(
-                rotina.id
-            );
+        abrirDetalhesRotina(
+            rotina.id,
+            dia
+        );
 
-        }
-    );
+    }
+);
 
 
     return card;
@@ -1336,23 +1455,17 @@ function atualizarProgressoSemana() {
     diasDaSemana.forEach((dia) => {
 
         const demandasDoDia =
-            rotinas.filter((rotina) => {
-
-                return rotina.dia === dia;
-
-            });
-
+            rotinas.filter((rotina) =>
+                obterDiasDaRotina(rotina).includes(dia)
+            );
 
         const totalDoDia =
             demandasDoDia.length;
 
-
         const concluidasDoDia =
-            demandasDoDia.filter((rotina) => {
-
-                return rotina.status === "feito";
-
-            }).length;
+            demandasDoDia.filter((rotina) =>
+                obterStatusDoDia(rotina, dia) === "feito"
+            ).length;
 
 
         totalSemana += totalDoDia;
@@ -1443,7 +1556,7 @@ function atualizarProgressoSemana() {
 // MODAL DE DETALHES
 // ============================================================
 
-function abrirDetalhesRotina(id) {
+function abrirDetalhesRotina(id, dia) {
 
     const rotina =
         rotinas.find(
@@ -1457,6 +1570,9 @@ function abrirDetalhesRotina(id) {
 
     rotinaSelecionada =
         rotina;
+
+    diaRotinaSelecionada =
+    dia;
 
 
     const title =
@@ -1523,8 +1639,8 @@ function abrirDetalhesRotina(id) {
 
     if (subtitle) {
 
-        subtitle.textContent =
-            `${formatarDia(rotina.dia)} • ${rotina.periodo}`;
+subtitle.textContent =
+    `${formatarDias(obterDiasDaRotina(rotina))} • ${rotina.periodo}`;
 
     }
 
@@ -1538,12 +1654,10 @@ function abrirDetalhesRotina(id) {
 
 
     if (day) {
-
         day.textContent =
-            formatarDia(
-                rotina.dia
+            formatarDias(
+                obterDiasDaRotina(rotina)
             );
-
     }
 
 
@@ -1589,20 +1703,44 @@ function abrirDetalhesRotina(id) {
     }
 
 
-    if (toggleStatus) {
+if (toggleStatus) {
 
-        toggleStatus.textContent =
-            rotina.status === "feito"
-                ? "Marcar como pendente"
-                : "Marcar como concluída";
+    const statusAtual =
+        obterStatusDoDia(
+            rotina,
+            diaRotinaSelecionada
+        );
 
-    }
+    toggleStatus.textContent =
+        statusAtual === "feito"
+            ? "Marcar como pendente"
+            : "Marcar como concluída";
+
+    toggleStatus.disabled =
+        !diaRotinaSelecionada;
+
+}
 
 
     abrirModal(
         demandModal
     );
 
+}
+
+function formatarDias(dias) {
+
+    const nomes = {
+        segunda: "Segunda-feira",
+        terca: "Terça-feira",
+        quarta: "Quarta-feira",
+        quinta: "Quinta-feira",
+        sexta: "Sexta-feira"
+    };
+
+    return dias
+        .map((dia) => nomes[dia] || dia)
+        .join(" • ");
 }
 
 
@@ -1725,18 +1863,32 @@ function configurarBotoesRotina() {
                     return;
 
 
+                const dia = diaRotinaSelecionada;
+
+                if (!dia) {
+                    mostrarToast(
+                        "Abra a rotina pela Semana ou pela tela Início para alterar o status do dia."
+                    );
+                    return;
+                }
+
+                const statusAtual =
+                    obterStatusDoDia(
+                        rotinaSelecionada,
+                        dia
+                    );
+
                 const novoStatus =
-                    rotinaSelecionada.status === "feito"
+                    statusAtual === "feito"
                         ? "pendente"
                         : "feito";
 
-
                 try {
 
-                    rotinaSelecionada.status = novoStatus;
-
                     await atualizarStatusNoFirebase(
-                        rotinaSelecionada
+                        rotinaSelecionada,
+                        dia,
+                        novoStatus
                     );
 
                     fecharModal(
@@ -1753,10 +1905,14 @@ function configurarBotoesRotina() {
 
                 } catch (erro) {
 
-                    rotinaSelecionada.status =
-                        rotinaSelecionada.status === "feito"
-                            ? "pendente"
-                            : "feito";
+                    const statusAnterior =
+                        rotinaSelecionada.statusPorDia?.[dia] || "pendente";
+                    rotinaSelecionada.statusPorDia =
+                        prepararStatusPorDia(
+                            rotinaSelecionada,
+                            obterDiasDaRotina(rotinaSelecionada)
+                        );
+                    rotinaSelecionada.statusPorDia[dia] = statusAnterior;
 
                     console.error(
                         "Erro ao atualizar status no Firebase:",
@@ -1896,12 +2052,6 @@ function preencherFormularioEdicao(
         );
 
 
-    const day =
-        document.getElementById(
-            "routineDay"
-        );
-
-
     const period =
         document.getElementById(
             "routinePeriod"
@@ -1928,12 +2078,23 @@ function preencherFormularioEdicao(
     }
 
 
-    if (day) {
+const diasSelecionados =
+    Array.isArray(rotina.dias)
+        ? rotina.dias
+        : rotina.dia
+            ? [rotina.dia]
+            : [];
 
-        day.value =
-            rotina.dia || "";
+document
+    .querySelectorAll('input[name="days"]')
+    .forEach((checkbox) => {
 
-    }
+        checkbox.checked =
+            diasSelecionados.includes(
+                checkbox.value
+            );
+
+    });
 
 
     if (period) {
@@ -2152,8 +2313,26 @@ function configurarFormularioRotina() {
                     ?.trim();
 
 
-            const dia =
-                formData.get("day");
+let dias =
+    formData.getAll("days");
+
+            if (dias.length === 0) {
+                const diaLegado =
+                    formData.get("day");
+
+                if (diaLegado) {
+                    dias = [diaLegado];
+                }
+            }
+
+    if (dias.length === 0) {
+
+    mostrarToast(
+        "Selecione pelo menos um dia da semana."
+    );
+
+    return;
+}
 
 
             const periodo =
@@ -2210,8 +2389,12 @@ function configurarFormularioRotina() {
                     const rotinaAtualizada = {
                         ...rotinaSelecionada,
                         descricao,
-                        dia,
+                        dias,
                         periodo,
+                        statusPorDia: prepararStatusPorDia(
+                            rotinaSelecionada,
+                            dias
+                        ),
                         prioridade,
                         procedimento,
                         observacoes
@@ -2238,27 +2421,24 @@ function configurarFormularioRotina() {
 
                 else {
 
-                    const novaRotina = {
+const novaRotina = {
 
-                        id:
-                            gerarIdUnico(),
+    id: gerarIdUnico(),
 
-                        descricao,
+    descricao,
 
-                        dia,
+    dias,
 
-                        periodo,
+    periodo,
 
-                        prioridade,
+    prioridade,
 
-                        status:
-                            "pendente",
+    status: "pendente",
 
-                        procedimento,
+    procedimento,
 
-                        observacoes
-
-                    };
+    observacoes
+};
 
                     await salvarRotinaNoFirebase(
                         novaRotina
@@ -2406,7 +2586,8 @@ function iniciarNovaRotina() {
 
     rotinaSelecionada =
         null;
-
+    diaRotinaSelecionada =
+        null;
 
     if (routineForm) {
 
@@ -2509,10 +2690,18 @@ async function reiniciarSemana() {
         await reiniciarSemanaNoFirebase();
 
         rotinas = rotinas.map(
-            (rotina) => ({
-                ...rotina,
-                status: "pendente"
-            })
+            (rotina) => {
+                const dias = obterDiasDaRotina(rotina);
+                return {
+                    ...rotina,
+                    status: "pendente",
+                    statusPorDia: normalizarStatusPorDia(
+                        {},
+                        dias,
+                        "pendente"
+                    )
+                };
+            }
         );
 
         fecharModal(
@@ -2737,7 +2926,8 @@ function resetarFormularioRotina() {
 
     rotinaSelecionada =
         null;
-
+    diaRotinaSelecionada =
+        null;
 
     if (routineForm) {
 
@@ -2946,7 +3136,8 @@ function renderizarProcedimentos() {
                     () => {
 
                         abrirDetalhesRotina(
-                            rotina.id
+                            rotina.id,
+                            null
                         );
 
                     }

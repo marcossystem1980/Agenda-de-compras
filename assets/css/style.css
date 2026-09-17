@@ -3275,3 +3275,90 @@ body.modal-open {
     }
 
 }
+
+/* =========================================================
+   CHECKBOXES - DIAS DA ROTINA
+========================================================= */
+
+input[type="checkbox"][name="days"] {
+    appearance: none;
+    -webkit-appearance: none;
+
+    width: 18px;
+    height: 18px;
+
+    border: 1.5px solid #b8aea4;
+    border-radius: 4px;
+
+    background: #fff;
+    cursor: pointer;
+
+    display: inline-grid;
+    place-content: center;
+
+    flex-shrink: 0;
+
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.1s ease;
+}
+
+input[type="checkbox"][name="days"]::before {
+    content: "✓";
+
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+
+    transform: scale(0);
+    transition: transform 0.12s ease;
+}
+
+input[type="checkbox"][name="days"]:checked {
+    background-color: #724613;
+    border-color: #724613;
+}
+
+input[type="checkbox"][name="days"]:checked::before {
+    transform: scale(1);
+}
+
+input[type="checkbox"][name="days"]:hover {
+    border-color: #724613;
+}
+
+input[type="checkbox"][name="days"]:active {
+    transform: scale(0.92);
+}
+
+.days-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.day-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+
+    font-size: 13px;
+    color: #4A3328;
+
+    padding: 7px 9px;
+    border-radius: 6px;
+
+    transition: background-color 0.15s ease;
+}
+
+.day-option:hover {
+    background: #f7f3ee;
+}
+
+.day-option span {
+    line-height: 1;
+}
