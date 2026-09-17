@@ -1182,20 +1182,19 @@ card.addEventListener(
 // INDICADORES DE HOJE
 // ============================================================
 
-function atualizarIndicadoresHoje(
-    demandas
-) {
+function atualizarIndicadoresHoje(demandas) {
 
     const total =
         demandas.length;
 
+    const diaAtual =
+        obterDiaAtual();
 
     const concluidas =
         demandas.filter(
             (item) =>
-                item.status === "feito"
+                obterStatusDoDia(item, diaAtual) === "feito"
         ).length;
-
 
     const pendentes =
         total - concluidas;
